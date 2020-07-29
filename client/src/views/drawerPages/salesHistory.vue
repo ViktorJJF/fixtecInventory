@@ -30,7 +30,7 @@
           >Ver detalle</v-btn>
           <v-btn small color="error" @click="deleteItem(item)">Eliminar</v-btn>
         </template>
-        <template v-slot:item.createdAt="{ item }">{{item.createdAt | dateFormat}}</template>
+        <template v-slot:item.createdAt="{ item }">{{item.createdAt | formatDate}}</template>
       </v-data-table>
       <div class="text-center pt-2">
         <v-pagination v-model="page" :length="pageCount"></v-pagination>
@@ -93,13 +93,13 @@
 </template>
 
 <script>
-import dateFormat from "../../tools/customDate";
-import { customCopyObject } from "../../tools/customCopyObject";
+import axios from "axios";
+import { format} from "date-fns";
 import { customHttpRequest } from "../../tools/customHttpRequest";
 export default {
   filters: {
-    dateFormat: function(value) {
-      return dateFormat(value);
+    formatDate: function(value) {
+      return format(new Date(value), "dd/MM/yyyy");
     }
   },
   data: () => ({
@@ -144,7 +144,6 @@ export default {
     async initialData() {
       // let orders = this.$store.getters.getOrders;
       // if (orders.length > 0) {
-      // this.orders = customCopyObject(orders);
       // } else {
       this.orders = await this.$store.dispatch("loadInitialOrders");
       // }

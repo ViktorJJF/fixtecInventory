@@ -2,7 +2,7 @@
   <custom-card title="Consulta de inventario" icon="mdi-magnify">
     <template v-slot:content>
       <v-card>
-        <v-tabs v-model="tab" background-color="secondary" centered dark icons-and-text>
+        <v-tabs v-model="tab" background-color="primary" centered dark icons-and-text>
           <v-tabs-slider></v-tabs-slider>
 
           <v-tab href="#tab-1">
@@ -97,7 +97,7 @@
                     <span>Stock por agotarse</span>
                   </v-tooltip>
                 </template>
-                <template v-slot:item.createdAt="{ item }">{{item.createdAt | dateFormat}}</template>
+                <template v-slot:item.createdAt="{ item }">{{item.createdAt | formatDate}}</template>
 
                 <template v-slot:item.price="{ item }">S/.{{item.price}}</template>
                 <template
@@ -240,18 +240,19 @@
 
 <script>
 import addProduct from "./addProduct";
-import dateFormat from "../../tools/customDate";
+import { format } from "date-fns";
+
 import Product from "../../classes/Product";
 import { customCopyObject } from "../../tools/customCopyObject";
 import { customHttpRequest } from "../../tools/customHttpRequest";
 export default {
   components: {
-    addProduct
+    addProduct,
   },
   filters: {
-    dateFormat: function(value) {
-      return dateFormat(value);
-    }
+    formatDate: function (value) {
+      return format(new Date(value), "dd/MM/yyyy");
+    },
   },
   data: () => ({
     page: 1,
@@ -275,14 +276,14 @@ export default {
         text: "Agregado",
         align: "left",
         sortable: true,
-        value: "createdAt"
+        value: "createdAt",
       },
-      { text: "Acciones", value: "action", sortable: false }
+      { text: "Acciones", value: "action", sortable: false },
     ],
     products: [],
     editedIndex: -1,
     editedItem: Product,
-    defaultItem: customCopyObject(Product)
+    defaultItem: customCopyObject(Product),
   }),
 
   computed: {
@@ -301,7 +302,7 @@ export default {
     filteredProducts() {
       return this.selectedType || this.selectedBrand
         ? this.products.filter(
-            product =>
+            (product) =>
               (this.selectedType
                 ? product.typeId === this.selectedType
                 : true) &&
@@ -310,13 +311,13 @@ export default {
                 : true)
           )
         : this.products;
-    }
+    },
   },
 
   watch: {
     dialog(val) {
       val || this.close();
-    }
+    },
   },
 
   created() {
@@ -372,7 +373,7 @@ export default {
         "put",
         "/api/products/update/" + productId,
         this.editedItem,
-        (err, callback) => {
+        (err) => {
           if (err) {
             return (this.loadingButton = false);
           }
@@ -381,8 +382,8 @@ export default {
           this.close();
         }
       );
-    }
-  }
+    },
+  },
 };
 </script>
 

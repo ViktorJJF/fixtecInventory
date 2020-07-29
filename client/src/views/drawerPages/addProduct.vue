@@ -111,7 +111,6 @@
 </template>
 
 <script>
-import dateFormat from "../../tools/customDate";
 import Product from "../../classes/Product";
 import { customCopyObject } from "../../tools/customCopyObject";
 import { customHttpRequest } from "../../tools/customHttpRequest";

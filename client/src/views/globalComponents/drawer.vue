@@ -2,7 +2,7 @@
   <v-navigation-drawer color="#040505" dark v-model="drawer" app width="260">
     <v-list>
       <v-list-item>
-        <v-img aspect-ratio="1.7" contain src="/images/fulltec.jpeg"></v-img>
+        <v-img aspect-ratio="1.7" contain src="/images/logo/fixtec.png"></v-img>
       </v-list-item>
       <v-list-item>
         <v-list-item-content>
@@ -14,7 +14,11 @@
           <v-icon>mdi-menu-down</v-icon>
         </v-list-item-action>-->
       </v-list-item>
+      <div class="text-center">
+        <v-btn color="secondary" small :to="{name:'userProfile'}">Editar perfil</v-btn>
+      </div>
     </v-list>
+
     <v-divider class="mx-3 mb-3"></v-divider>
     <v-list nav flat>
       <template v-for="(item, i) in items">
@@ -44,7 +48,6 @@
           :to="{name:subItem.to}"
           v-for="subItem in item.items"
           :key="subItem.title"
-          @click
         >
           <v-list-item-icon>
             <v-icon>{{ subItem.icon }}</v-icon>
@@ -66,17 +69,17 @@ export default {
         {
           icon: "mdi-chart-bar",
           text: "Estadísticas",
-          to: "statistics"
+          to: "statistics",
         },
         {
           icon: "mdi-format-list-checks",
           text: "Inventario",
-          to: "listProduct"
+          to: "listProduct",
         },
 
         { icon: "mdi-format-list-bulleted", text: "Tipos", to: "type" },
         { icon: "mdi-cellphone-dock", text: "Marcas", to: "brand" },
-        { icon: "mdi-format-color-fill", text: "Colores", to: "colors" }
+        { icon: "mdi-format-color-fill", text: "Colores", to: "colors" },
       ],
       expansionItems: [
         {
@@ -86,14 +89,14 @@ export default {
             {
               icon: "mdi-library-plus",
               title: "Agregar venta",
-              to: "addOrder"
+              to: "addOrder",
             },
             {
               icon: "mdi-format-list-checks",
               title: "Historial de ventas",
-              to: "orderHistory"
-            }
-          ]
+              to: "orderHistory",
+            },
+          ],
         },
         {
           icon: "mdi-store",
@@ -102,16 +105,16 @@ export default {
             {
               icon: "mdi-library-plus",
               title: "Agregar compra",
-              to: "addPurchase"
+              to: "addPurchase",
             },
             {
               icon: "mdi-format-list-checks",
               title: "Historial de compras",
-              to: "historyPurchase"
-            }
-          ]
-        }
-      ]
+              to: "historyPurchase",
+            },
+          ],
+        },
+      ],
     };
   },
   computed: {
@@ -121,15 +124,15 @@ export default {
       },
       set(newValue) {
         this.$store.state.toolbar.drawerIcon = newValue;
-      }
+      },
     },
     user() {
       return this.$store.getters.getFullNameUser;
     },
     email() {
       return this.$store.state.user.email;
-    }
-  }
+    },
+  },
 };
 </script>
 

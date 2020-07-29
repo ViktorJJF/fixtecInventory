@@ -92,7 +92,7 @@
             <v-btn class="mr-3" small color="success" @click="editItem(item)">Editar</v-btn>
             <v-btn small color="error" @click="deleteItem(item)">Eliminar</v-btn>
           </template>
-          <template v-slot:item.createdAt="{ item }">{{item.createdAt | dateFormat}}</template>
+          <template v-slot:item.createdAt="{ item }">{{item.createdAt | formatDate}}</template>
           <template v-slot:no-data>
             <v-alert type="error" :value="true">Aún no cuentas con colores de productos</v-alert>
           </template>
@@ -116,15 +116,15 @@
 </template>
 
 <script>
-import dateFormat from "../../tools/customDate";
+import { format} from "date-fns";
 import ColorProduct from "../../classes/ColorProduct";
 import { customCopyObject } from "../../tools/customCopyObject";
 import { customHttpRequest } from "../../tools/customHttpRequest";
 
 export default {
   filters: {
-    dateFormat: function(value) {
-      return dateFormat(value);
+   formatDate: function(value) {
+      return format(new Date(value), "dd/MM/yyyy");
     }
   },
   data: () => ({
@@ -237,7 +237,7 @@ export default {
           "put",
           "/api/colors/update/" + typeId,
           this.editedItem,
-          (err, callback) => {
+          (err) => {
             if (err) {
               return (this.loadingButton = false);
             }
@@ -253,7 +253,7 @@ export default {
           "post",
           "/api/colors/create",
           this.editedItem,
-          (err, callback) => {
+          (err) => {
             if (err) {
               return (this.loadingButton = false);
             }

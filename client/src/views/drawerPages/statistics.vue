@@ -132,8 +132,7 @@
 </template>
 
 <script>
-import dashboardCard from "../components/dashboardCard";
-import apexChart from "vue-apexcharts";
+import axios from "axios";
 export default {
   data() {
     return {
@@ -151,13 +150,13 @@ export default {
             "Se",
             "Oc",
             "No",
-            "Di"
+            "Di",
           ],
-          series: [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+          series: [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]],
         },
         options: {
           lineSmooth: this.$chartist.Interpolation.cardinal({
-            tension: 0
+            tension: 0,
           }),
           low: 0,
           high: 50, // creative tim: we recommend you to set the high sa the biggest value + something for a better look
@@ -165,9 +164,9 @@ export default {
             top: 0,
             right: 0,
             bottom: 0,
-            left: 0
-          }
-        }
+            left: 0,
+          },
+        },
       },
       dailySalesChart: {
         data: {
@@ -183,13 +182,13 @@ export default {
             "Se",
             "Oc",
             "No",
-            "Di"
+            "Di",
           ],
-          series: [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+          series: [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]],
         },
         options: {
           lineSmooth: this.$chartist.Interpolation.cardinal({
-            tension: 0
+            tension: 0,
           }),
           low: 0,
           high: 50, // creative tim: we recommend you to set the high sa the biggest value + something for a better look
@@ -197,9 +196,9 @@ export default {
             top: 0,
             right: 0,
             bottom: 0,
-            left: 0
-          }
-        }
+            left: 0,
+          },
+        },
       },
       isDataReady: false,
       months: [
@@ -214,11 +213,11 @@ export default {
         "Septiembre",
         "Octubre",
         "Noviembre",
-        "Diciembre"
+        "Diciembre",
       ],
       options: {
         chart: {
-          id: "vuechart-example"
+          id: "vuechart-example",
         },
         xaxis: {
           categories: [
@@ -233,21 +232,17 @@ export default {
             "Septiembre",
             "Octubre",
             "Noviembre",
-            "Diciembre"
-          ]
-        }
+            "Diciembre",
+          ],
+        },
       },
       series: [
         {
           name: "Cantidad",
-          data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        }
-      ]
+          data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        },
+      ],
     };
-  },
-  components: {
-    dashboardCard,
-    apexChart
   },
   mounted() {
     this.getInitialData();
@@ -260,18 +255,18 @@ export default {
       await this.$store.dispatch("countPurchases");
       axios
         .get("/api/orders/count-by-date")
-        .then(res => {
+        .then((res) => {
           let datas = res.data.payload;
-          datas.forEach(data => {
+          datas.forEach((data) => {
             this.dailySalesChart.data.series[0][parseInt(data._id)] =
               data.count;
           });
           this.isDataReady = true;
         })
-        .catch(err => {
+        .catch((err) => {
           console.error(err);
         });
-    }
+    },
   },
   computed: {
     getProducts() {
@@ -285,8 +280,8 @@ export default {
     },
     colors() {
       return this.$store.getters.getColors;
-    }
-  }
+    },
+  },
 };
 </script>
 <style>

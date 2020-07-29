@@ -10,9 +10,9 @@
 export default {
   data() {
     return {
-      imageBg: "/images/loginbg.jpg"
+      imageBg: "/images/loginbg.jpg",
     };
-  }
+  },
 };
 </script>
 

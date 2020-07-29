@@ -1,12 +1,12 @@
 <template>
   <v-app-bar dark app color="primary">
     <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
-    <span class="title ml-3 mr-5">Fulltec</span>
+    <span class="title ml-3 mr-5">Fixtec</span>
     <v-spacer></v-spacer>
     <v-menu v-if="$store.state.user" offset-y>
       <template v-slot:activator="{ on }">
         <v-btn icon v-on="on">
-          <v-badge color="red" @click>
+          <v-badge color="red">
             <template v-slot:badge>{{$store.state.stockAlert.length}}</template>
             <v-icon>mdi-email</v-icon>
           </v-badge>
@@ -46,25 +46,24 @@ export default {
       },
       set(newValue) {
         this.$store.state.toolbar.drawerIcon = newValue;
-      }
+      },
     },
     user() {
       return this.$store.state.user.email;
-    }
+    },
   },
   methods: {
     logout() {
       this.$store
         .dispatch("logout")
-        .then(res => {
-          console.log("se pusheara el login");
+        .then(() => {
           this.$router.push({ name: "login" });
         })
-        .catch(err => {
-          console.log("algo salio mal en logout");
+        .catch((err) => {
+          console.log("algo salio mal en logout:", err);
         });
-    }
-  }
+    },
+  },
 };
 </script>
 

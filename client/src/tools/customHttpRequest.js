@@ -1,5 +1,5 @@
 import store from "../store";
-
+import axios from "axios";
 const customHttpRequest = (type, url, params = null, callback = () => {}) => {
     axios[type](url, params)
         .then(res => {

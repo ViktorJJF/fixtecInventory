@@ -69,9 +69,7 @@
 </template>
 
 <script>
-import dateFormat from "../../tools/customDate";
-import { customCopyObject } from "../../tools/customCopyObject";
-import { customHttpRequest } from "../../tools/customHttpRequest";
+import axios from "axios";
 export default {
   data() {
     return {
@@ -97,8 +95,6 @@ export default {
       return this.$store.getters.getProductPurchasePrice(model);
     },
     validateForm() {
-      let products = this.purchase;
-      let stockSentinel = false;
       if (this.purchase.length === 0) {
         this.validateError = true;
         return false;

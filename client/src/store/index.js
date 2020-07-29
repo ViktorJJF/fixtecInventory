@@ -1,12 +1,13 @@
 import Vue from "vue";
 import Vuex from "vuex";
 //plugins
-import Axios from "axios";
-Vue.prototype.$http = Axios;
+import axios from "axios";
+import modules from "./modules";
 
 Vue.use(Vuex);
 
 export default new Vuex.Store({
+  modules: modules,
   state: {
     token: localStorage.getItem("token") || "",
     user: null,
@@ -14,10 +15,10 @@ export default new Vuex.Store({
     snackbar: {
       text: "",
       active: false,
-      color: "success"
+      color: "success",
     },
     toolbar: {
-      drawerIcon: null
+      drawerIcon: null,
     },
     overlay: {
       active: false,
@@ -30,7 +31,7 @@ export default new Vuex.Store({
     totalOrders: 0,
     purchases: [],
     totalPurchases: 0,
-    stockAlert: []
+    stockAlert: [],
   },
   mutations: {
     updateMasterPoints(state, qty) {
@@ -43,10 +44,7 @@ export default new Vuex.Store({
       state.user = null;
       console.log("se borraran los datos");
     },
-    auth_success(state, {
-      token,
-      user
-    }) {
+    auth_success(state, { token, user }) {
       state.status = "success";
       state.token = token;
       state.user = user;
@@ -55,10 +53,7 @@ export default new Vuex.Store({
     auth_error(state) {
       state.status = "error";
     },
-    showSnackbar(state, {
-      text,
-      color
-    }) {
+    showSnackbar(state, { text, color }) {
       state.snackbar.text = text;
       state.snackbar.color = color;
       state.snackbar.active = true;
@@ -100,19 +95,15 @@ export default new Vuex.Store({
     addOrder(state, newOrder) {
       state.orders.push(newOrder);
     },
-    updateStock(state, {
-      type,
-      productId,
-      qty
-    }) {
+    updateStock(state, { type, productId, qty }) {
       let product;
       switch (type) {
         case "order":
-          product = state.products.find(product => product._id === productId);
+          product = state.products.find((product) => product._id === productId);
           product.stock -= qty;
           break;
         case "purchase":
-          product = state.products.find(product => product._id === productId);
+          product = state.products.find((product) => product._id === productId);
           product.stock += qty;
           break;
         default:
@@ -124,325 +115,288 @@ export default new Vuex.Store({
           stock: product.stock,
         });
       }
-    }
+    },
   },
   actions: {
-    addOrder({
-      commit
-    }, newOrder) {
-      commit("addOrder", newOrder)
+    addOrder({ commit }, newOrder) {
+      commit("addOrder", newOrder);
     },
-    updateStock({
-      commit
-    }, {
-      type,
-      productId,
-      qty
-    }) {
+    updateStock({ commit }, { type, productId, qty }) {
       commit("updateStock", {
         type,
         productId,
-        qty
+        qty,
       });
     },
-    addProduct({
-      commit
-    }, newProduct) {
+    addProduct({ commit }, newProduct) {
       commit("addProduct", newProduct);
     },
-    countOrders({
-      commit
-    }) {
+    countOrders({ commit }) {
       return new Promise((resolve) => {
         axios
           .get("/api/orders/count")
-          .then(res => {
+          .then((res) => {
             if (res.data.ok) {
               commit("countOrders", res.data.payload);
               resolve();
             }
           })
-          .catch(err => {
+          .catch((err) => {
             console.error(err);
           });
       });
     },
-    countPurchases({
-      commit
-    }) {
+    countPurchases({ commit }) {
       return new Promise((resolve) => {
         axios
           .get("/api/purchases/count")
-          .then(res => {
+          .then((res) => {
             if (res.data.ok) {
               commit("countPurchases", res.data.payload);
               resolve();
             }
           })
-          .catch(err => {
+          .catch((err) => {
             console.error(err);
           });
       });
     },
-    loadInitialOrders({
-      commit
-    }) {
+    loadInitialOrders({ commit }) {
       return new Promise((resolve) => {
         axios
           .get("/api/orders/list")
-          .then(res => {
+          .then((res) => {
             if (res.data.ok) {
               commit("loadInitialOrders", res.data.payload);
               resolve(res.data.payload);
             }
           })
-          .catch(err => {
+          .catch((err) => {
             console.error(err);
           });
       });
     },
-    loadInitialPurchases({
-      commit
-    }) {
+    loadInitialPurchases({ commit }) {
       return new Promise((resolve) => {
         axios
           .get("/api/purchases/list")
-          .then(res => {
+          .then((res) => {
             if (res.data.ok) {
               commit("loadInitialPurchases", res.data.payload);
               resolve(res.data.payload);
             }
           })
-          .catch(err => {
+          .catch((err) => {
             console.error(err);
           });
       });
     },
-    loadInitialTypes({
-      commit
-    }) {
+    loadInitialTypes({ commit }) {
       return new Promise((resolve) => {
         axios
           .get("/api/types/list")
-          .then(res => {
+          .then((res) => {
             if (res.data.ok) {
               commit("loadInitialTypes", res.data.payload);
               resolve();
             }
           })
-          .catch(err => {
+          .catch((err) => {
             console.error(err);
           });
       });
     },
-    loadInitialInventory({
-      commit
-    }) {
+    loadInitialInventory({ commit }) {
       return new Promise((resolve) => {
         axios
           .get("/api/products/list")
-          .then(res => {
+          .then((res) => {
             if (res.data.ok) {
               commit("loadInitialInventory", res.data.payload);
               resolve();
             }
           })
-          .catch(err => {
+          .catch((err) => {
             console.error(err);
           });
       });
     },
-    loadInitialBrands({
-      commit
-    }) {
+    loadInitialBrands({ commit }) {
       return new Promise((resolve) => {
         axios
           .get("/api/brands/list")
-          .then(res => {
+          .then((res) => {
             if (res.data.ok) {
               commit("loadInitialBrands", res.data.payload);
               resolve();
             }
           })
-          .catch(err => {
+          .catch((err) => {
             console.error(err);
           });
       });
     },
-    loadInitialColors({
-      commit
-    }) {
+    loadInitialColors({ commit }) {
       return new Promise((resolve) => {
         axios
           .get("/api/colors/list")
-          .then(res => {
+          .then((res) => {
             if (res.data.ok) {
               commit("loadInitialColors", res.data.payload);
               resolve();
             }
           })
-          .catch(err => {
+          .catch((err) => {
             console.error(err);
           });
       });
     },
-    logout({
-      commit
-    }) {
+    logout({ commit }) {
       return new Promise((resolve, reject) => {
-        axios.get('/api/logout')
-          .then(res => {
+        axios
+          .get("/api/logout")
+          .then(() => {
             console.log("cerrando sesion");
             commit("logout");
             resolve();
           })
-          .catch(err => {
+          .catch((err) => {
             console.error(err);
             reject(err);
-          })
+          });
       });
       // delete axios.defaults.headers.common['Authorization'];
     },
-    showSnackbar({
-      commit
-    }, {
-      text,
-      color
-    }) {
+    showSnackbar({ commit }, { text, color }) {
       commit("showSnackbar", {
         text,
-        color
+        color,
       });
     },
-    showOverlay({
-      commit
-    }, active) {
+    showOverlay({ commit }, active) {
       commit("showOverlay", active);
     },
-    updateMasterPoints({
-      commit
-    }, qty) {
+    updateMasterPoints({ commit }, qty) {
       commit("updateMasterPoints", qty);
     },
-    login({
-      commit
-    }, user) {
+    login({ commit }, user) {
       return new Promise((resolve, reject) => {
-        commit('auth_request');
+        commit("auth_request");
         axios
           .post("/api/login", {
             email: user.email,
-            password: user.password
+            password: user.password,
           })
-          .then(res => {
+          .then((res) => {
             if (res.data.ok) {
               const token = res.data.token;
               const user = res.data.user;
-              axios.defaults.headers.common['Authorization'] = token
-              commit('auth_success', {
+              axios.defaults.headers.common["Authorization"] = token;
+              commit("auth_success", {
                 token,
-                user
+                user,
               });
               resolve(res.data.message);
             }
           })
-          .catch(err => {
-            commit('auth_error');
+          .catch((err) => {
+            commit("auth_error");
             if (err.response) {
               console.error(err.response.data);
               reject(err);
             }
           });
       });
-    }
+    },
   },
   getters: {
-    getFullNameUser: state => {
+    getFullNameUser: (state) => {
       if (state.user) {
         return state.user.first_name + " " + state.user.last_name;
       }
     },
-    isLoggedIn: state => !!state.token,
-    authStatus: state => state.status,
-    getBrands: state => {
+    isLoggedIn: (state) => !!state.token,
+    authStatus: (state) => state.status,
+    getBrands: (state) => {
       return state.brands;
     },
-    getTypes: state => {
+    getTypes: (state) => {
       return state.types;
     },
-    getColors: state => {
+    getColors: (state) => {
       return state.colors;
     },
-    getProducts: state => {
+    getProducts: (state) => {
       return state.products;
     },
-    getTotalOrders: state => {
+    getTotalOrders: (state) => {
       return state.totalOrders;
     },
-    getTotalPurchases: state => {
+    getTotalPurchases: (state) => {
       return state.totalPurchases;
     },
-    getOrders: state => {
+    getOrders: (state) => {
       return state.orders;
     },
-    getPurchases: state => {
+    getPurchases: (state) => {
       return state.purchases;
     },
-    getproductStock: state => id => {
+    getproductStock: (state) => (id) => {
       if (id) {
-        return state.products.find(product => product._id == id).stock;
+        return state.products.find((product) => product._id == id).stock;
       }
       return 0;
     },
-    getProductPrice: state => id => {
+    getProductPrice: (state) => (id) => {
       if (id) {
-        return state.products.find(product => product._id == id).price;
+        return state.products.find((product) => product._id == id).price;
       }
       return 0;
     },
-    getProductPurchasePrice: state => id => {
+    getProductPurchasePrice: (state) => (id) => {
       if (id) {
-        return state.products.find(product => product._id == id).purchasePrice;
+        return state.products.find((product) => product._id == id)
+          .purchasePrice;
       }
       return 0;
     },
-    getBrandById: state => id => {
+    getBrandById: (state) => (id) => {
       if (id) {
-        let brand = state.brands.find(brand => brand._id == id);
+        let brand = state.brands.find((brand) => brand._id == id);
         return brand ? brand.name : "ELIMINADO";
       }
       return "";
     },
-    getTypeById: state => id => {
+    getTypeById: (state) => (id) => {
       if (id) {
-        let type = state.types.find(type => type._id == id);
+        let type = state.types.find((type) => type._id == id);
         return type ? type.name : "ELIMINADO";
       }
       return "";
     },
-    getProductById: state => id => {
+    getProductById: (state) => (id) => {
       if (id) {
-        let product = state.products.find(product => product._id == id);
+        let product = state.products.find((product) => product._id == id);
         return product ? product.model : "ELIMINADO";
       }
       return "";
     },
-    getColorById: state => id => {
+    getColorById: (state) => (id) => {
       if (id) {
-        let color = state.colors.find(color => color._id == id);
+        let color = state.colors.find((color) => color._id == id);
         return color ? color.name : "ELIMINADO";
       }
       return "";
     },
-    getUserId: state => {
+    getUserId: (state) => {
       return state.user._id;
     },
-    getUserFullName: state => id => {
+    getUserFullName: (state) => (id) => {
       if (id) {
-        let user = state.users.find(user => user._id == id);
+        let user = state.users.find((user) => user._id == id);
         return user ? user.name : "ELIMINADO";
       }
       return "";
-    }
-  }
+    },
+  },
 });

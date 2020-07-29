@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const trimRequest = require("trim-request");
 
 //Controllers
 const typesController = require("../../controllers/typesController");
@@ -12,6 +13,9 @@ const purchasesController = require("../../controllers/purchasesController.js");
 const purchaseDetailsController = require("../../controllers/purchaseDetailsController.js");
 const usersController = require("../../controllers/usersController");
 
+//Validations
+const brandsValidator = require("../../controllers/brands.validate");
+
 //CRUD types
 router.get("/types", typesController.list);
 router.get("/types/all", typesController.listAll);
@@ -23,8 +27,12 @@ router.delete("/types/:id", typesController.deletes);
 router.get("/brands", brandsController.list);
 router.get("/brands/all", brandsController.listAll);
 router.get("/brands/:id", brandsController.listOne);
-router.post("/brands", brandsController.create);
-router.put("/brands/:id", brandsController.update);
+router.post(
+  "/brands",
+  [trimRequest.all, brandsValidator.create],
+  brandsController.create
+);
+router.put("/brands/:id", [trimRequest.all], brandsController.update);
 router.delete("/brands/:id", brandsController.deletes);
 //CRUD colors
 router.get("/colors", colorsController.list);
@@ -71,7 +79,7 @@ router.post("/users", usersController.create);
 router.put("/users/:id", usersController.update);
 router.delete("/users/:id", usersController.deletes);
 router.post("/login", usersController.login);
-router.post("/users/logged", usersController.getUser);
+// router.post("/users/logged", usersController.getUser);
 router.get("/logout", usersController.logout);
 
 module.exports = router;

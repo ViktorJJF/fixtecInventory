@@ -48,7 +48,10 @@ const create = async (req, res) => {
   let user = new User({
     first_name: body.first_name,
     last_name: body.last_name,
-    password: await bcrypt.hash(body.password, process.env.SALTROUNDS),
+    password: await bcrypt.hash(
+      body.password,
+      parseInt(process.env.SALTROUNDS)
+    ),
     email: body.email,
     img: body.img,
     role: body.role,
@@ -145,67 +148,56 @@ const deletes = (req, res) => {
     });
   });
 };
-const login = (req, res) => {
+const login = async (req, res) => {
   let email = req.body.email;
   let password = req.body.password;
-  User.findOne(
-    {
+  try {
+    let userDB = await User.findOne({
       email,
-    },
-    (err, userDB) => {
-      if (err) {
-        return res.status(400).json({
-          ok: false,
-          message: "Algo salió mal",
-          err,
-        });
-      }
-      if (!userDB) {
-        return res.status(400).json({
-          ok: false,
-          err: {
-            message: "El usuario con ese correo no existe",
-          },
-        });
-      }
-      let passwordIsValid = bcrypt.compareSync(password, userDB.password);
-      if (!passwordIsValid) {
-        return res.status(400).json({
-          ok: false,
-          err: {
-            message: "Contraseña incorrecta",
-          },
-        });
-      }
-      let token = jwt.sign(
-        {
-          usuario: userDB,
+    }).exec();
+    if (!userDB) {
+      return res.status(400).json({
+        ok: false,
+        err: {
+          message: "El usuario con ese correo no existe",
         },
-        process.env.SEED,
-        {
-          expiresIn: process.env.EXPIRESIN,
-        }
-      );
-      console.log("antes del inicio: ", userDB._id);
-      req.login(
-        {
-          user: userDB,
-        },
-        (err) => {
-          if (err) {
-            return console.log(err);
-          }
-          console.log("inicio de sesion exitoso");
-        }
-      );
-      res.json({
-        ok: true,
-        message: "Bienvenido",
-        user: userDB,
-        token,
       });
     }
-  );
+    let passwordIsValid = bcrypt.compareSync(password, userDB.password);
+    if (!passwordIsValid) {
+      return res.status(400).json({
+        ok: false,
+        err: {
+          message: "Contraseña incorrecta",
+        },
+      });
+    }
+    userDB = userDB.toObject();
+    delete userDB["password"];
+    console.log("el usuario: ", userDB);
+    let token = jwt.sign(
+      {
+        usuario: userDB,
+      },
+      process.env.SEED,
+      {
+        expiresIn: parseInt(process.env.EXPIRESIN),
+      }
+    );
+    res.status(200).json({
+      ok: true,
+      message: "Bienvenido",
+      user: userDB,
+      token,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({
+      ok: false,
+      message: "Algo salió mal",
+      error,
+    });
+  }
 };
 
 module.exports = {

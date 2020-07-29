@@ -2,73 +2,81 @@
   <div class="backgroundImage">
     <div class="wrapper fadeInDown">
       <div id="formContent">
-        <!-- Tabs Titles -->
-        <h2 class="active">Ingreso</h2>
+        <ValidationObserver ref="obs" v-slot="{ passes }">
+          <v-form>
+            <!-- Tabs Titles -->
+            <h2 class="active">Ingreso</h2>
 
-        <!-- Icon -->
-        <div class="fadeIn first">
-          <v-img class="fadeIn first" aspect-ratio="2" contain src="/images/fulltec.jpeg"></v-img>
-        </div>
+            <!-- Icon -->
+            <div class="fadeIn first">
+              <v-img
+                class="fadeIn first circular"
+                aspect-ratio="2"
+                contain
+                src="/images/logo/fixtec.png"
+              ></v-img>
+            </div>
 
-        <!-- Login Form -->
-        <v-text-field
-          outlined
-          id="login"
-          class="fadeIn second mx-9"
-          name="login"
-          v-model="user.email"
-          label="Correo"
-          prepend-inner-icon="person"
-          type="text"
-        ></v-text-field>
-        <v-text-field
-          outlined
-          id="password"
-          name="login"
-          class="fadeIn third mx-9"
-          label="Contraseña"
-          prepend-inner-icon="lock"
-          type="password"
-          v-model="user.password"
-        ></v-text-field>
-        <v-btn
-          class="ma-5"
-          color="info"
-          lass="fadeIn fourth"
-          value="Ingresar"
-          @click="login(user)"
-        >Ingresar</v-btn>
+            <!-- Login Form -->
+            <VTextFieldWithValidation
+              id="login"
+              name="login"
+              class="fadeIn second"
+              customClasses="mx-9 my-3"
+              rules="required|email"
+              v-model="user.email"
+              label="Correo"
+              prepend-inner-icon="mdi-account"
+            />
+            <VTextFieldWithValidation
+              id="password"
+              class="fadeIn second"
+              customClasses="mx-9 my-3"
+              rules="required"
+              v-model="user.password"
+              label="Contraseña"
+              prepend-inner-icon="mdi-lock"
+              type="password"
+            />
+            <v-btn
+              :loading="loading"
+              class="ma-5"
+              color="info"
+              lass="fadeIn fourth"
+              value="Ingresar"
+              @click="passes(login)"
+            >Ingresar</v-btn>
+          </v-form>
+        </ValidationObserver>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 export default {
+  components: {
+    VTextFieldWithValidation,
+  },
   data() {
     return {
-      user: { email: "", password: "" }
+      loading: false,
+      user: { email: "", password: "" },
     };
   },
   methods: {
-    login(user) {
+    login() {
+      let user = this.user;
+      this.loading = true;
       this.$store
-        .dispatch("login", user)
-        .then(res => {
-          this.$store.dispatch("showSnackbar", {
-            text: res,
-            color: "success"
-          });
-          this.$router.push({ name: "dashboard" });
+        .dispatch("authModule/login", user)
+        .then(() => {
+          this.$router.push({ name: "statistics" });
         })
-        .catch(err => {
-          this.$store.dispatch("showSnackbar", {
-            text: err.response.data,
-            color: "error"
-          });
-        });
-    }
-  }
+        .finally(() => (this.loading = false));
+    },
+  },
 };
 </script>
 
@@ -76,6 +84,16 @@ export default {
 @import url("https://fonts.googleapis.com/css?family=Poppins");
 
 /* BASIC */
+
+.circular {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: blue;
+  display: inline-block;
+  vertical-align: middle;
+}
 
 .backgroundImage {
   margin: auto 0px;

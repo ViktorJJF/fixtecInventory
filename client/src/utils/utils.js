@@ -109,7 +109,7 @@ export const handleError = (error, commit, reject) => {
   // Resets errors in store
   commit("loadingModule/showLoading", false, { root: true });
   commit("errorModule/error", null, { root: true });
-
+  console.log("el error: ", error);
   // Checks if unauthorized
   if (error.response.status === 401) {
     store.dispatch("userLogout", { root: true });

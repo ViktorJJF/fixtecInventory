@@ -13,6 +13,13 @@ const purchasesController = require("../../controllers/purchasesController.js");
 const purchaseDetailsController = require("../../controllers/purchaseDetailsController.js");
 const usersController = require("../../controllers/usersController");
 
+const AuthController = require("../../controllers/authController");
+require("../../config/passport");
+const passport = require("passport");
+const requireAuth = passport.authenticate("jwt", {
+  session: false,
+});
+
 //Validations
 const brandsValidator = require("../../controllers/brands.validate");
 
@@ -24,7 +31,11 @@ router.post("/types", typesController.create);
 router.put("/types/:id", typesController.update);
 router.delete("/types/:id", typesController.deletes);
 //CRUD brands
-router.get("/brands", brandsController.list);
+router.get(
+  "/brands",
+  [AuthController.roleAuthorization(["admin"])],
+  brandsController.list
+);
 router.get("/brands/all", brandsController.listAll);
 router.get("/brands/:id", brandsController.listOne);
 router.post(

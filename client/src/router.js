@@ -103,7 +103,6 @@ router.beforeEach(async (to, from, next) => {
     store.state.user = JSON.parse(localStorage.getItem("user"));
     store.state.token = JSON.parse(localStorage.getItem("token"));
   }
-
   if (to.matched.some((record) => record.meta.requiresAuth)) {
     if (!store.state.user) {
       next({
@@ -115,6 +114,7 @@ router.beforeEach(async (to, from, next) => {
     } else {
       let user = store.state.user;
       if (to.matched.some((record) => record.meta.requiresAuth)) {
+        console.log("aea alpaca");
         if (user.role == "ADMIN") {
           next();
         } else {

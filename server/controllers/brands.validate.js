@@ -12,12 +12,6 @@ exports.create = [
     .isEmpty()
     .withMessage("El nombre de la marca debe ser válido")
     .trim(),
-  check("userId")
-    .exists()
-    .withMessage("El usuario es requerido")
-    .not()
-    .isEmpty()
-    .withMessage("El usuario debe ser válido"),
   (req, res, next) => {
     validationResult(req, res, next);
   },
@@ -62,7 +56,7 @@ exports.listOne = [
 /**
  * Validates delete item request
  */
-exports.delete = [
+exports.deletes = [
   check("id")
     .exists()
     .withMessage("MISSING")

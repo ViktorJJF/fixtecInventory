@@ -9,8 +9,8 @@ let Schema = mongoose.Schema;
 let orderSchema = new Schema(
   {
     userId: {
-      type: String,
-      required: true,
+      type: Schema.Types.ObjectId,
+      ref: "Users",
     },
     status: {
       type: Boolean,

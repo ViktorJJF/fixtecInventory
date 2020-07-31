@@ -1,26 +1,28 @@
-const mongoose = require('mongoose');
-const Product = require('../models/Products.js');
-const FKHelper = require('../mongoMiddlewares/preventDeleteFK');
+const mongoose = require("mongoose");
+const Product = require("../models/Products.js");
+const FKHelper = require("../mongoMiddlewares/preventDeleteFK");
 let Schema = mongoose.Schema;
 
-let qualitiesSchema = new Schema({
+let qualitiesSchema = new Schema(
+  {
     name: {
-        type: String,
-        required: [true, "El nombre del tipo es requerido"],
+      type: String,
+      required: [true, "El nombre del tipo es requerido"],
     },
     description: String,
     status: {
-        type: Boolean,
-        default: true
+      type: Boolean,
+      default: true,
     },
     userId: {
-        type: String,
-        required: true
+      type: Schema.Types.ObjectId,
+      ref: "Users",
     },
-
-}, {
-    timestamps: true
-});
+  },
+  {
+    timestamps: true,
+  }
+);
 
 // qualitiesSchema.pre('findOneAndRemove', async () => {
 //     console.log("123 brus");
@@ -31,4 +33,4 @@ let qualitiesSchema = new Schema({
 //     await FKHelper(Product, this.getQuery());
 // });
 
-module.exports = mongoose.model('Qualities', qualitiesSchema);
+module.exports = mongoose.model("Qualities", qualitiesSchema);

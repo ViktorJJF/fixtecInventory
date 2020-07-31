@@ -31,6 +31,7 @@ const listOne = async (req, res) => {
 
 const create = async (req, res) => {
   try {
+    req.body.userId = req.user._id;
     res.status(200).json(await db.createItem(req.body, model));
   } catch (error) {
     utils.handleError(res, error);

@@ -2,16 +2,16 @@
   <v-container fluid>
     <v-row>
       <v-col cols="12" sm="12">
-        <span class="font-weight-bold">Modelo</span>
+        <span class="font-weight-bold">Nombre</span>
         <v-text-field
           dense
           hide-details
           outlined
-          v-model="newProduct.model"
-          placeholder="Nombre del modelo"
+          v-model="newProduct.name"
+          placeholder="Nombre del producto"
         ></v-text-field>
       </v-col>
-      <v-col cols="12" sm="4">
+      <v-col cols="12" sm="3">
         <span class="font-weight-bold">Tipo</span>
         <v-select
           placeholder="Selecciona un Tipo"
@@ -25,12 +25,11 @@
           outlined
         ></v-select>
       </v-col>
-      <v-col cols="12" sm="4">
+      <v-col cols="12" sm="3">
         <span class="font-weight-bold">Marca</span>
         <v-select
           placeholder="Selecciona una Marca"
           item-text="name"
-          item-valur="_id"
           dense
           hide-details
           v-model="newProduct.brandId"
@@ -39,7 +38,7 @@
           outlined
         ></v-select>
       </v-col>
-      <v-col cols="12" sm="4">
+      <v-col cols="12" sm="3">
         <span class="font-weight-bold">Color</span>
         <v-select
           dense
@@ -51,6 +50,27 @@
           :items="colors"
           outlined
         ></v-select>
+      </v-col>
+      <v-col cols="12" sm="3">
+        <span class="font-weight-bold">Calidad</span>
+        <v-select
+          dense
+          hide-details
+          v-model="newProduct.qualityId"
+          placeholder="Selecciona una calidad"
+          item-text="name"
+          item-value="_id"
+          :items="qualities"
+          :loading="qualitiesLoading"
+          @click="getQualities"
+          outlined
+        >
+          <template v-slot:no-data>
+            <v-container fluid class="text-center" v-if="qualitiesLoading">
+              <v-progress-circular indeterminate color="primary"></v-progress-circular>
+            </v-container>
+          </template>
+        </v-select>
       </v-col>
       <v-col cols="12" sm="3">
         <span class="font-weight-bold">Stock</span>
@@ -112,46 +132,50 @@
 
 <script>
 import Product from "../../classes/Product";
-import { customCopyObject } from "../../tools/customCopyObject";
-import { customHttpRequest } from "../../tools/customHttpRequest";
 export default {
   data() {
     return {
+      qualitiesLoading: false,
       loadingButton: false,
-      newProduct: customCopyObject(Product)
+      newProduct: Product(),
     };
   },
   mounted() {},
   computed: {
     brands() {
-      return this.$store.getters.getBrands;
+      return this.$store.state.brandsModule.brands;
     },
     types() {
-      return this.$store.getters.getTypes;
+      return this.$store.state.typesModule.types;
     },
     colors() {
-      return this.$store.getters.getColors;
-    }
+      return this.$store.state.colorsModule.colors;
+    },
+    qualities() {
+      return this.$store.state.qualitiesModule.qualities;
+    },
   },
   methods: {
-    saveProduct(product) {
+    async saveProduct() {
       //create new product
       this.loadingButton = true;
-      customHttpRequest(
-        "post",
-        "/api/products/create",
-        product,
-        (err, callback) => {
-          if (err) {
-            return (this.loadingButton = false);
-          }
-          this.$store.dispatch("addProduct", callback);
-          this.loadingButton = false;
-          this.newProduct = customCopyObject(Product);
+      try {
+        await this.$store.dispatch("productsModule/create", this.newProduct);
+      } finally {
+        this.loadingButton = false;
+      }
+    },
+    async getQualities() {
+      if (this.qualities.length === 0) {
+        this.qualitiesLoading = true;
+        try {
+          await this.$store.dispatch("qualitiesModule/list");
+        } finally {
+          this.qualitiesLoading = false;
         }
-      );
-    }
-  }
+      }
+    },
+  },
 };
 </script>
 

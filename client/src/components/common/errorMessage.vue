@@ -3,18 +3,14 @@
     <v-layout>
       <v-flex>
         <v-snackbar shaped v-model="showErrorMessage" color="error" multi-line bottom :timeout="0">
-          <v-row>
-            <v-col cols="9" sm="9">
-              <ul>
-                <li v-for="(item, index) in error" :key="index">{{ item }}</li>
-              </ul>
-            </v-col>
-            <v-col cols="3" sm="3">
-              <v-btn text @click="showErrorMessage = false">
-                <v-icon large>mdi-close-circle</v-icon>
-              </v-btn>
-            </v-col>
-          </v-row>
+          <ul>
+            <li v-for="(item, index) in error" :key="index">{{ item }}</li>
+          </ul>
+          <template v-slot:action>
+            <v-btn text @click="showErrorMessage = false">
+              <v-icon large>mdi-close-circle</v-icon>
+            </v-btn>
+          </template>
         </v-snackbar>
       </v-flex>
     </v-layout>

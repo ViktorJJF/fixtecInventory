@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 mongoose.plugin(require("mongoose-beautiful-unique-validation")); //unique validator
 mongoose.plugin(require("mongoose-paginate-v2")); //paginator
+mongoose.plugin(require("mongoose-aggregate-paginate-v2")); //aggregate paginator
 const DB_URL = process.env.MONGO_URI;
 const loadModels = require("../models");
 

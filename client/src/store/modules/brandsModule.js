@@ -25,11 +25,10 @@ const module = {
         api
           .create(data)
           .then((res) => {
-            let data = res.data.payload;
             commit("loadingModule/showLoading", true, { root: true });
-            buildSuccess("Registro guardado con éxito", commit, resolve);
-            commit("create", data);
-            resolve(data);
+            buildSuccess("Registro guardado con éxito", commit);
+            commit("create", res.data.payload);
+            resolve(res.data.payload);
           })
           .catch((error) => {
             handleError(error, commit, reject);
@@ -41,14 +40,13 @@ const module = {
         api
           .update(id, data)
           .then((res) => {
-            let data = res.data.payload;
             commit("loadingModule/showLoading", true, { root: true });
-            buildSuccess("Registro guardado con éxito", commit, resolve);
+            buildSuccess("Registro actualizado con éxito", commit);
             commit("update", {
               id,
-              data,
+              data: res.data.payload,
             });
-            resolve();
+            resolve(res.data.payload);
           })
           .catch((error) => {
             handleError(error, commit, reject);
@@ -61,7 +59,7 @@ const module = {
           .delete(id)
           .then(() => {
             commit("loadingModule/showLoading", true, { root: true });
-            buildSuccess("Registro eliminado con éxito", commit, resolve);
+            buildSuccess("Registro eliminado con éxito", commit);
             commit("delete", id);
             resolve();
           })

@@ -1,26 +1,44 @@
 <template>
-  <v-snackbar :color="snackbarColor" :timeout="3000" v-model="snackbar">
-    {{ snackbarText }}
-    <v-btn text @click="snackbar = false">Cerrar</v-btn>
+  <v-snackbar
+    shaped
+    v-model="showSuccessMessage"
+    color="success"
+    bottom
+    :timeout="successMessageTimeout"
+  >
+    {{ successMessage }}
+    <template v-slot:action>
+      <v-btn text @click="showSuccessMessage = false">
+        <v-icon large>mdi-close-circle</v-icon>
+      </v-btn>
+    </template>
   </v-snackbar>
 </template>
 
 <script>
 export default {
+  name: "SuccessMessage",
   computed: {
-    snackbar: {
+    showSuccessMessage: {
       get() {
         return this.$store.state.successModule.showSuccessMessage;
       },
-      set(newValue) {
-        this.$store.state.successModule.showSuccessMessage = newValue;
+      set(value) {
+        this.$store.commit("successModule/showSuccess", value);
       },
     },
-    snackbarText() {
+    successMessage() {
       return this.$store.state.successModule.successMessage;
     },
-    snackbarColor() {
-      return "success";
+    successMessageTimeout() {
+      return this.$store.state.successModule.successMessageTimeout;
+    },
+  },
+  watch: {
+    successMessage() {
+      setTimeout(() => {
+        this.showSuccessMessage = this.successMessage !== "";
+      }, 100);
     },
   },
 };

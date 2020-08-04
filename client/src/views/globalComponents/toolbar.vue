@@ -3,7 +3,7 @@
     <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
     <span class="title ml-3 mr-5">Fixtec</span>
     <v-spacer></v-spacer>
-    <v-menu v-if="$store.state.user" offset-y>
+    <v-menu v-if="$store.state.authModule.user" offset-y>
       <template v-slot:activator="{ on }">
         <v-btn icon v-on="on">
           <v-badge color="red">
@@ -20,8 +20,8 @@
         </v-list-item>
       </v-list>
     </v-menu>
-    <v-btn v-if="!$store.state.user" dark outlined :to="{name:'login'}">Iniciar Sesión</v-btn>
-    <v-menu v-if="$store.state.user" offset-y>
+    <v-btn v-if="!$store.state.authModule.user" dark outlined :to="{name:'login'}">Iniciar Sesión</v-btn>
+    <v-menu v-if="$store.state.authModule.user" offset-y>
       <template v-slot:activator="{ on }">
         <v-btn text color="white" dark v-on="on">
           {{user}}
@@ -49,13 +49,13 @@ export default {
       },
     },
     user() {
-      return this.$store.state.user.email;
+      return this.$store.state.authModule.user.email;
     },
   },
   methods: {
     logout() {
       this.$store
-        .dispatch("logout")
+        .dispatch("authModule/logout")
         .then(() => {
           this.$router.push({ name: "login" });
         })

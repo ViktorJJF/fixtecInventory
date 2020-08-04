@@ -1,106 +1,78 @@
 <template>
   <custom-card title="Historial de ventas" icon="mdi-format-list-checks">
     <template v-slot:content>
-      <v-col cols="12" sm="12">
+      <!-- <v-col cols="12" sm="12">
         <p>
           <strong>Total de ventas:</strong>
           {{$store.getters.getTotalOrders}}
         </p>
-      </v-col>
+      </v-col>-->
+
+      <div class="text-center pt-2">
+        <v-pagination v-model="page" @input="initialData(page)" :length="totalPages"></v-pagination>
+      </div>
       <v-data-table
         :loading="!isDataReady"
-        loading-text="Cargando datos"
-        hide-default-footer
         :headers="headers"
-        :items="orders"
-        @page-count="pageCount = $event"
-        :page.sync="page"
-        :items-per-page="itemsPerPage"
+        :items="sales"
+        :options.sync="pagination"
+        :items-per-page="5"
+        :server-items-length="totalItems"
+        hide-default-footer
+        class="elevation-1"
+        :footer-props="{
+        'items-per-page-text': 'yarita',
+        'items-per-page-options': [5, 10, 25]
+      }"
       >
         <template v-slot:no-data>
           <v-alert type="error" :value="true">Aún no cuentas con un historial de ventas</v-alert>
         </template>
-        <template v-slot:item.userId>Administrador</template>
+        <template v-slot:item.userId="{item}">{{item.userId.email}}</template>
+        <template v-slot:item.products="{item}">
+          <ul>
+            <li
+              v-for="product in item.products"
+              :key="product._id"
+            >{{product.productId.name}} ({{product.qty}} x S/.{{product.salePrice}})</li>
+          </ul>
+        </template>
+        <template v-slot:item.amount="{item}">
+          <span class="ganancia">S/.{{totalRevenue(item.products)}}</span>
+        </template>
+        <template v-slot:item.date="{item}">
+          <div>
+            {{item.date | formatDate}}
+            <v-chip
+              v-show="item.products[0]?item.products[0].history:false"
+              color="info"
+              class="ma-2"
+              small
+            >Histórico</v-chip>
+          </div>
+        </template>
         <template v-slot:item.actions="{item}">
-          <v-btn
-            small
-            color="secondary"
-            class="mr-3"
-            @click.stop="dialog=true;showOrderDetail(item)"
-          >Ver detalle</v-btn>
           <v-btn small color="error" @click="deleteItem(item)">Eliminar</v-btn>
         </template>
         <template v-slot:item.createdAt="{ item }">{{item.createdAt | formatDate}}</template>
       </v-data-table>
       <div class="text-center pt-2">
-        <v-pagination v-model="page" :length="pageCount"></v-pagination>
+        <v-pagination v-model="page" @input="initialData(page)" :length="totalPages"></v-pagination>
       </div>
-      <v-dialog v-model="dialog" width="500">
-        <v-card>
-          <v-toolbar color="secondary" dark>
-            <v-toolbar-title>Detalle de venta</v-toolbar-title>
-          </v-toolbar>
-          <v-container>
-            <p>
-              <strong>ID de la venta:</strong>
-              {{orders.length>0?orders[selectedOrder]._id:""}}
-            </p>
-            <p>
-              <strong>Usuario:</strong>
-              <!-- {{orders.length>0?orders[selectedOrder].userId:""}} -->
-              Administrador
-            </p>
-            <p>
-              <strong>Detalle de productos:</strong>
-            </p>
-            <v-simple-table>
-              <template v-slot:default>
-                <thead>
-                  <tr>
-                    <th class="text-left">Producto</th>
-                    <th class="text-left">Precio</th>
-                    <th class="text-left">Cantidad</th>
-                    <th class="text-left">Subtotal</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="orderDetail in orderDetails" :key="orderDetail._id">
-                    <td>{{ $store.getters.getProductById(orderDetail.productId) }}</td>
-                    <td>S/. {{ orderDetail.price }}</td>
-                    <td>{{ orderDetail.qty }}</td>
-                    <td>S/. {{ orderDetail.price*orderDetail.qty }}</td>
-                  </tr>
-                </tbody>
-              </template>
-            </v-simple-table>
-            <v-row justify="end" class="mr-3">
-              <v-card outlined color="light-green lighten-5" class="pa-3">
-                <strong class="mr-3">Total:</strong>
-                &nbsp;
-                <span class="total">S/.{{getTotal}}</span>
-              </v-card>
-            </v-row>
-          </v-container>
-          <v-divider></v-divider>
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn color="primary" text @click="dialog = false;clearOrderDetail();">De acuerdo</v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
     </template>
   </custom-card>
 </template>
 
 <script>
-import axios from "axios";
-import { format} from "date-fns";
-import { customHttpRequest } from "../../tools/customHttpRequest";
+import { format } from "date-fns";
+import { mapGetters } from "vuex";
+import { buildPayloadPagination } from "@/utils/utils.js";
+// import { customHttpRequest } from "../../tools/customHttpRequest";
 export default {
   filters: {
-    formatDate: function(value) {
-      return format(new Date(value), "dd/MM/yyyy");
-    }
+    formatDate: function (value) {
+      return format(new Date(value), "hh:m:s a dd/MM/yyyy");
+    },
   },
   data: () => ({
     page: 1,
@@ -108,107 +80,95 @@ export default {
     itemsPerPage: 10,
     isDataReady: false,
     selectedOrder: 0,
+    pagination: {},
     search: "",
     dialog: false,
     headers: [
-      { text: "ID de venta", value: "_id" },
-      { text: "Usuario", value: "userId" },
-      { text: "Fecha", value: "createdAt" },
-      { text: "Acciones", value: "actions" }
+      { text: "Fecha de venta", value: "date" },
+      { text: "Vendedor", value: "userId" },
+      { text: "Productos vendidos", value: "products" },
+      { text: "Beneficio", value: "amount" },
+      { text: "Acciones", value: "actions" },
     ],
-    orders: [],
-    orderDetails: []
+    sales: [],
+    orderDetails: [],
   }),
   computed: {
-    formTitle() {
-      return "Editar producto";
+    totalItems() {
+      return this.$store.state.salesModule.totalSales;
     },
-    brands() {
-      return this.$store.getters.getBrands;
+    totalPages() {
+      return this.$store.state.salesModule.totalPages;
     },
-    types() {
-      return this.$store.getters.getTypes;
-    },
-    colors() {
-      return this.$store.getters.getColors;
-    },
-    getTotal() {
-      return this.orderDetails.reduce((a, b) => a + b.price * b.qty, 0);
-    }
+    ...mapGetters({
+      productById: "productsModule/productById",
+    }),
   },
   created() {
     this.initialData();
   },
-
   methods: {
-    async initialData() {
-      // let orders = this.$store.getters.getOrders;
-      // if (orders.length > 0) {
-      // } else {
-      this.orders = await this.$store.dispatch("loadInitialOrders");
-      // }
+    async initialData(currentPage) {
+      try {
+        this.$store.dispatch("loadingModule/showLoading");
+        currentPage = currentPage || 1;
+        this.sales = await this.$store.dispatch(
+          "salesModule/listWithProducts",
+          buildPayloadPagination({
+            page: currentPage,
+            itemsPerPage: this.$store.state.itemsPerPage,
+          })
+        );
+        //populate with products
+        for (let i = 0; i < this.sales.length; i++) {
+          for (let j = 0; j < this.sales[i].products.length; j++) {
+            this.sales[i].products[j].productId = this.productById(
+              this.sales[i].products[j].productId
+            );
+          }
+        }
+      } catch (error) {
+        console.log("algo salio mal...:", error);
+      } finally {
+        this.$store.dispatch("loadingModule/showLoading", false);
+      }
       this.isDataReady = true;
     },
-    showOrderDetail(item) {
-      this.selectedOrder = this.orders.indexOf(item);
-      let orderId = this.orders[this.selectedOrder]._id;
-      axios
-        .get("/api/order-details/list", { params: { orderId } })
-        .then(res => {
-          console.log(res);
-          if (res.data.ok) {
-            this.orderDetails = res.data.payload;
-          }
-        })
-        .catch(err => {
-          console.error(err);
-        });
+    totalRevenue(salesDetail) {
+      if (salesDetail)
+        return salesDetail.reduce((a, b) => a + b.salePrice * b.qty, 0);
+      else return "S/.0";
     },
-    clearOrderDetail() {
-      this.orderDetails = [];
-    },
-    deleteItem(item) {
-      const index = this.orders.indexOf(item);
-      let orderId = this.orders[index]._id;
+    async deleteItem(item) {
+      const index = this.sales.indexOf(item);
+      let itemId = this.sales[index]._id;
+      let detailsProducts = this.sales[index].products;
       if (
-        confirm(
+        await this.$confirm(
           "¿Seguro que deseas eliminar esta venta? Se sumará el stock a los productos del detalle"
         )
       ) {
-        this.updateStoreStock(orderId);
-        this.$store.dispatch("showOverlay", true);
-        customHttpRequest(
-          "delete",
-          "/api/orders/delete/" + orderId,
-          null,
-          () => {
-            this.$store.dispatch("showOverlay", false);
-            this.orders.splice(index, 1);
+        try {
+          this.$store.dispatch("loadingModule/showLoading");
+          await this.$store.dispatch("salesModule/delete", itemId);
+          for (const detailsProduct of detailsProducts) {
+            console.log("este es el history: ", detailsProduct.history);
+            if (!detailsProduct.history) {
+              this.$store.commit("productsModule/updateStock", {
+                productId: detailsProduct.productId._id,
+                qty: detailsProduct.qty,
+              });
+            }
           }
-        );
+          this.sales.splice(index, 1);
+        } catch (error) {
+          console.log(error);
+        } finally {
+          this.$store.dispatch("loadingModule/showLoading", false);
+        }
       }
     },
-    updateStoreStock(orderId) {
-      axios
-        .get("/api/order-details/list", { params: { orderId } })
-        .then(res => {
-          console.log(res);
-          if (res.data.ok) {
-            let orderDetails = res.data.payload;
-            orderDetails.forEach(detail => {
-              this.$store.dispatch("updateStock", {
-                type: "order",
-                productId: detail.productId,
-                qty: -parseInt(detail.qty)
-              });
-            });
-          }
-        })
-        .catch(err => {
-          console.error(err);
-        });
-    }
-  }
+  },
 };
 </script>
 

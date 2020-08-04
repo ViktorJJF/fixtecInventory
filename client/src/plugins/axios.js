@@ -1,11 +1,11 @@
 import Vue from "vue";
 import axios from "axios";
-import { checkIfTokenNeedsRefresh } from "@/utils/utils.js";
+// import { checkIfTokenNeedsRefresh } from "@/utils/utils.js";
 // import { checkForUpdates } from "@/utils/updates.js";
 
 axios.defaults.baseURL = process.env.VUE_APP_API_URL || "";
 axios.defaults.headers.common["Accept-Language"] =
-  JSON.parse(localStorage.getItem("locale")) || "en";
+  JSON.parse(localStorage.getItem("locale")) || "es";
 
 axios.interceptors.request.use(
   (config) => {
@@ -13,20 +13,16 @@ axios.interceptors.request.use(
     // If request is different than any of the URLS in urlsExcludedForBearerHeader
     // then send Authorization header with token from localstorage
     const urlsExcludedForBearerHeader = [
-      "/login",
-      "/forgot",
-      "/register",
-      "/reset",
+      "/api/login",
+      "/api/forgot",
+      "/api/register",
+      "/api/reset",
       `${window.location.origin}/version.json`,
     ];
     if (urlsExcludedForBearerHeader.indexOf(config.url) === -1) {
       config.headers.Authorization = `Bearer ${JSON.parse(
         localStorage.getItem("token")
       )}`;
-      console.log(
-        "se enviara este token brus: ",
-        localStorage.getItem("token")
-      );
     }
     return config;
   },
@@ -41,13 +37,13 @@ axios.interceptors.response.use(
   (response) => {
     // Do something with response data
     // Checks if app is being used in mobile
-    if (
-      response.config.url !== `${process.env.VUE_APP_API_URL}/token` &&
-      response.config.url !== `${window.location.origin}/version.json`
-    ) {
-      //   checkForUpdates();
-      checkIfTokenNeedsRefresh();
-    }
+    // if (
+    //   response.config.url !== `${process.env.VUE_APP_API_URL}/token` &&
+    //   response.config.url !== `${window.location.origin}/version.json`
+    // ) {
+    //   //   checkForUpdates();
+    //   checkIfTokenNeedsRefresh();
+    // }
     return response;
   },
   (error) => {

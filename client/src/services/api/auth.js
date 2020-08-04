@@ -9,4 +9,7 @@ export default {
   updatePassword(id, newPassword) {
     return axios.put(`/api/members/${id}/update-password`, { newPassword });
   },
+  refreshToken() {
+    return axios.get("/api/token");
+  },
 };

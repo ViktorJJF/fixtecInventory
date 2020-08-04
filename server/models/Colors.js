@@ -17,6 +17,7 @@ let colorSchema = new Schema(
     },
   },
   {
+    versionKey: false,
     timestamps: true,
   }
 );

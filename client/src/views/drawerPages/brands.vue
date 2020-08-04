@@ -5,8 +5,8 @@
         width="700px"
         icon="mdi-cellphone-dock"
         color="primary"
-        title="Marca de producto"
-        text="Tabla resumen de marcas de productos"
+        title="MARCA de producto"
+        text="Tabla resumen de MARCA de productos"
       >
         <v-data-table
           no-results-text="No se encontraron resultados"
@@ -17,7 +17,7 @@
           sort-by="calories"
           @page-count="pageCount = $event"
           :page.sync="page"
-          :items-per-page="itemsPerPage"
+          :items-per-page="$store.state.itemsPerPage"
         >
           <template v-slot:top>
             <v-container>
@@ -29,7 +29,7 @@
                     hide-details
                     v-model="search"
                     append-icon="search"
-                    placeholder="Escribe el nombre de la marca"
+                    placeholder="Escribe el nombre del tipo"
                     single-line
                     outlined
                   ></v-text-field>
@@ -37,7 +37,7 @@
                 <v-col cols="12" sm="6">
                   <v-dialog v-model="dialog" max-width="500px">
                     <template v-slot:activator="{ on }">
-                      <v-btn color="primary" dark class="mb-2" v-on="on">Agregar Marca</v-btn>
+                      <v-btn color="primary" dark class="mb-2" v-on="on">Agregar tipo</v-btn>
                     </template>
                     <v-card>
                       <v-card-title>
@@ -51,14 +51,14 @@
                             text
                             type="error"
                             :value="validateError"
-                          >Es necesario colocar el nombre de la marca</v-alert>
+                          >Es necesario colocar el nombre del tipo</v-alert>
                           <v-row dense>
                             <v-col cols="12" sm="12" md="12">
                               <p class="body-1 font-weight-bold">Nombre</p>
                               <VTextFieldWithValidation
                                 rules="required"
                                 v-model="editedItem.name"
-                                label="Nombre de la marca"
+                                label="Nombre del tipo"
                               />
                             </v-col>
                             <v-col cols="12" sm="12">
@@ -104,7 +104,7 @@
             <v-btn small color="error" @click="deleteItem(item)">Eliminar</v-btn>
           </template>
           <template v-slot:no-data>
-            <v-alert type="error" :value="true">Aún no cuentas con marcas de productos</v-alert>
+            <v-alert type="error" :value="true">Aún no cuentas con tipos de productos</v-alert>
           </template>
           <template v-slot:item.createdAt="{ item }">{{item.createdAt | formatDate}}</template>
           <template v-slot:item.status="{item}">
@@ -114,8 +114,8 @@
         </v-data-table>
         <v-col cols="12" sm="12">
           <span>
-            <strong>Total de marcas:</strong>
-            {{brands.length}}
+            <strong>Mostrando:</strong>
+            {{$store.state.itemsPerPage>brands.length?brands.length:$store.state.itemsPerPage}} de {{brands.length}} registros
           </span>
         </v-col>
         <div class="text-center pt-2">
@@ -130,7 +130,6 @@
 import { format } from "date-fns";
 import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import BrandProduct from "../../classes/BrandProduct";
-import { customHttpRequest } from "../../tools/customHttpRequest";
 export default {
   components: {
     VTextFieldWithValidation,
@@ -143,7 +142,6 @@ export default {
   data: () => ({
     page: 1,
     pageCount: 0,
-    itemsPerPage: 10,
     loadingButton: false,
     validateError: false,
     search: "",
@@ -171,7 +169,7 @@ export default {
 
   computed: {
     formTitle() {
-      return this.editedIndex === -1 ? "Nueva marca" : "Editar marca";
+      return this.editedIndex === -1 ? "Nuevo tipo" : "Editar tipo";
     },
   },
 
@@ -189,14 +187,6 @@ export default {
     initialize() {
       this.brands = this.$deepCopy(this.$store.state.brandsModule.brands);
     },
-    validateForm() {
-      if (!this.editedItem.name) {
-        this.validateError = true;
-        return false;
-      }
-      this.validateError = false;
-      return true;
-    },
     editItem(item) {
       this.editedIndex = this.brands.indexOf(item);
       this.editedItem = Object.assign({}, item);
@@ -205,9 +195,9 @@ export default {
 
     async deleteItem(item) {
       const index = this.brands.indexOf(item);
-      // let brandsId = this.brands[index]._id;
+      let itemId = this.brands[index]._id;
       if (await this.$confirm("¿Realmente deseas eliminar este registro?")) {
-        // customHttpRequest("delete", "/api/brands/delete/" + brandsId);
+        await this.$store.dispatch("brandsModule/delete", itemId);
         this.brands.splice(index, 1);
       }
     },
@@ -221,26 +211,21 @@ export default {
     },
 
     async save() {
-      if (!this.validateForm()) return false;
       this.loadingButton = true;
       if (this.editedIndex > -1) {
-        let brandId = this.brands[this.editedIndex]._id;
-        //update brand
-        customHttpRequest(
-          "put",
-          "/api/brands/update/" + brandId,
-          this.editedItem,
-          (err) => {
-            if (err) {
-              return (this.loadingButton = false);
-            }
-            Object.assign(this.brands[this.editedIndex], this.editedItem);
-            this.loadingButton = false;
-            this.close();
-          }
-        );
+        let itemId = this.brands[this.editedIndex]._id;
+        try {
+          await this.$store.dispatch("brandsModule/update", {
+            id: itemId,
+            data: this.editedItem,
+          });
+          Object.assign(this.brands[this.editedIndex], this.editedItem);
+          this.close();
+        } finally {
+          this.loadingButton = false;
+        }
       } else {
-        //create brand
+        //create item
         try {
           let newItem = await this.$store.dispatch(
             "brandsModule/create",

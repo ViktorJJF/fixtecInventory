@@ -65,14 +65,22 @@ export default {
       user: { email: "", password: "" },
     };
   },
+  created() {
+    if (this.$store.state.authModule.isTokenSet) {
+      this.$router.push({ name: "dashboard" });
+    }
+  },
   methods: {
     login() {
       let user = this.user;
-      this.loading = true;
+      // this.loading = true;
       this.$store
         .dispatch("authModule/login", user)
         .then(() => {
-          this.$router.push({ name: "statistics" });
+          this.$router.push({ name: "dashboard" });
+        })
+        .catch((error) => {
+          console.log("error en login: ", error);
         })
         .finally(() => (this.loading = false));
     },
@@ -96,10 +104,9 @@ export default {
 }
 
 .backgroundImage {
-  margin: auto 0px;
-  width: auto;
-  height: 1000px;
-  background-color: #56baed;
+  height: 100%;
+  background-color: #28156c;
+  opacity: 0.9;
 }
 
 body {

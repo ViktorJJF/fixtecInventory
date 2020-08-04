@@ -1,5 +1,5 @@
-export default {
-    name: "",
-    description: "",
-    status: true
-};
+export default () => ({
+  name: "",
+  description: "",
+  status: true,
+});

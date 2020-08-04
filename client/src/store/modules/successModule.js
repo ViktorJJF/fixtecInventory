@@ -8,28 +8,28 @@ const getters = {
 };
 
 const mutations = {
-  // [types.SUCCESS](state, payload) {
-  //   if (payload === null) {
-  //     state.showSuccessMessage = false;
-  //     state.successMessage = null;
-  //     state.successMessageParams = [];
-  //   } else {
-  //     state.showSuccessMessage = true;
-  //     state.successMessageTimeout =
-  //       payload.timeout === 0 ? 0 : payload.timeout || 6000;
-  //     state.successMessage = payload.msg;
-  //     if (payload.params) {
-  //       state.successMessageParams = payload.params;
-  //     }
-  //   }
-  // },
-  // [types.SHOW_SUCCESS](state, payload) {
-  //   state.showSuccessMessage = !!payload;
-  // }
-  showSuccess(state, msg) {
-    state.showSuccessMessage = true;
-    state.successMessage = msg;
+  success(state, msg) {
+    if (msg === null) {
+      state.showSuccessMessage = false;
+      state.successMessage = null;
+      state.successMessageParams = [];
+    } else {
+      state.showSuccessMessage = true;
+      state.successMessageTimeout = 3000;
+      // msg.timeout === 0 ? 0 : msg.timeout || 6000;
+      state.successMessage = msg;
+      // if (msg.params) {
+      //   state.successMessageParams = payload.params;
+      // }
+    }
   },
+  showSuccess(state, payload) {
+    state.showSuccessMessage = !!payload;
+  },
+  // showSuccess(state, msg) {
+  //   state.showSuccessMessage = true;
+  //   state.successMessage = msg;
+  // },
 };
 
 const state = {

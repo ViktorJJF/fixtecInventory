@@ -10,7 +10,6 @@ const { removeExtensionFromFile } = require("../../helpers/utils");
 
 // Load Auth route
 router.use("/", require("./auth"));
-
 // Loop routes path and loads every file as a route except this file and Auth route
 fs.readdirSync(routesPath).filter((file) => {
   // Take filename and remove last part (extension)

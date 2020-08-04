@@ -177,7 +177,7 @@ const findUser = async (email) => {
       },
       "password loginAttempts blockExpires name email role verified verification",
       (err, item) => {
-        utils.itemNotFound(err, item, reject, "USER_DOES_NOT_EXIST");
+        utils.itemNotFound(err, item, reject, "La cuenta no existe");
         resolve(item);
       }
     );
@@ -191,7 +191,7 @@ const findUser = async (email) => {
 const findUserById = async (userId) => {
   return new Promise((resolve, reject) => {
     User.findById(userId, (err, item) => {
-      utils.itemNotFound(err, item, reject, "USER_DOES_NOT_EXIST");
+      utils.itemNotFound(err, item, reject, "La cuenta no existe");
       resolve(item);
     });
   });
@@ -206,7 +206,7 @@ const passwordsDoNotMatch = async (user) => {
   await saveLoginAttemptsToDB(user);
   return new Promise((resolve, reject) => {
     if (user.loginAttempts <= LOGIN_ATTEMPTS) {
-      resolve(utils.buildErrObject(409, "WRONG_PASSWORD"));
+      resolve(utils.buildErrObject(409, "La contraseña es incorrecta"));
     } else {
       resolve(blockUser(user));
     }

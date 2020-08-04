@@ -25,11 +25,10 @@ const module = {
         api
           .create(data)
           .then((res) => {
-            let data = res.data.payload;
             commit("loadingModule/showLoading", true, { root: true });
-            buildSuccess("Registro guardado con éxito", commit, resolve);
-            commit("create", data);
-            resolve();
+            buildSuccess("Registro guardado con éxito", commit);
+            commit("create", res.data.payload);
+            resolve(res.data.payload);
           })
           .catch((error) => {
             handleError(error, commit, reject);
@@ -41,14 +40,13 @@ const module = {
         api
           .update(id, data)
           .then((res) => {
-            let data = res.data.payload;
             commit("loadingModule/showLoading", true, { root: true });
-            buildSuccess("Registro guardado con éxito", commit, resolve);
+            buildSuccess("Registro actualizado con éxito", commit);
             commit("update", {
               id,
-              data,
+              data: res.data.payload,
             });
-            resolve();
+            resolve(res.data.payload);
           })
           .catch((error) => {
             handleError(error, commit, reject);
@@ -61,7 +59,7 @@ const module = {
           .delete(id)
           .then(() => {
             commit("loadingModule/showLoading", true, { root: true });
-            buildSuccess("Registro eliminado con éxito", commit, resolve);
+            buildSuccess("Registro eliminado con éxito", commit);
             commit("delete", id);
             resolve();
           })
@@ -80,7 +78,7 @@ const module = {
     },
     update(state, { id, data }) {
       let indexToUpdate = state.products.findIndex(
-        (member) => member._id == id
+        (product) => product._id == id
       );
       state.products.splice(indexToUpdate, 1, {
         ...data,
@@ -88,12 +86,25 @@ const module = {
     },
     delete(state, id) {
       let indexToDelete = state.products.findIndex(
-        (member) => member._id == id
+        (product) => product._id == id
       );
       state.products.splice(indexToDelete, 1);
     },
+    updateStock(state, { productId, qty }) {
+      let index = state.products.findIndex(
+        (product) => product._id == productId
+      );
+      state.products[index].stock = state.products[index].stock + qty;
+    },
   },
-  getters: {},
+  getters: {
+    productById(state) {
+      return (productId) => {
+        let result = state.products.find((product) => product._id == productId);
+        return result;
+      };
+    },
+  },
 };
 
 export default module;

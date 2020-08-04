@@ -2,6 +2,46 @@ const model = require("../models/Brands");
 const utils = require("../helpers/utils");
 const db = require("../helpers/db");
 
+/*********************
+ * Private functions *
+ *********************/
+
+const UNIQUEFIELDS = ["name"];
+
+const itemExistsExcludingItself = async (id, body) => {
+  return new Promise((resolve, reject) => {
+    let query = UNIQUEFIELDS.length > 0 ? {} : { noFields: true };
+    for (const uniquefield of UNIQUEFIELDS) {
+      query[uniquefield] = body[uniquefield];
+    }
+    query._id = {
+      $ne: id,
+    };
+    model.findOne(query, (err, item) => {
+      utils.itemAlreadyExists(err, item, reject, "Este registro ya existe");
+      resolve(false);
+    });
+  });
+};
+
+const itemExists = async (body) => {
+  return new Promise((resolve, reject) => {
+    let query = UNIQUEFIELDS.length > 0 ? {} : { noFields: true };
+    for (const uniquefield of UNIQUEFIELDS) {
+      query[uniquefield] = body[uniquefield];
+    }
+    model.findOne(query, (err, item) => {
+      console.log("el item es: ", item);
+      utils.itemAlreadyExists(err, item, reject, "Este registro ya existe");
+      resolve(false);
+    });
+  });
+};
+
+/**
+ * Gets all items from database
+ */
+
 const listAll = async (req, res) => {
   try {
     res.status(200).json(await db.getAllItems(model));
@@ -32,15 +72,22 @@ const listOne = async (req, res) => {
 const create = async (req, res) => {
   try {
     req.body.userId = req.user._id;
-    res.status(200).json(await db.createItem(req.body, model));
+    const doesItemExists = await itemExists(req.body);
+    if (!doesItemExists) {
+      res.status(200).json(await db.createItem(req.body, model));
+    }
   } catch (error) {
     utils.handleError(res, error);
   }
 };
 const update = async (req, res) => {
   try {
+    req.body.userId = req.user._id;
     const id = await utils.isIDGood(req.params.id);
-    res.status(200).json(await db.updateItem(id, model, req.body));
+    const doesItemExists = await itemExistsExcludingItself(id, req.body);
+    if (!doesItemExists) {
+      res.status(200).json(await db.updateItem(id, model, req.body));
+    }
   } catch (error) {
     utils.handleError(res, error);
   }

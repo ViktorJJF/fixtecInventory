@@ -1,4 +1,5 @@
 const model = require("../models/Purchases.js");
+const PurchasesDetail = require("../models/PurchasesDetails.js");
 const utils = require("../helpers/utils");
 const db = require("../helpers/db");
 
@@ -19,6 +20,51 @@ const list = async (req, res) => {
     utils.handleError(res, error);
   }
 };
+const listWithProducts = async (req, res) => {
+  try {
+    // let startDate = new Date("2020", "4");
+    // let endDate = new Date("2021", "4");
+    let aggregated = model.aggregate([
+      // {
+      //   $match: {
+      //     date: { $gte: startDate, $lt: endDate },
+      //   },
+      // },
+      {
+        $lookup: {
+          from: "purchasesdetails",
+          localField: "_id",
+          foreignField: "purchaseId",
+          as: "productsByPurchase",
+        },
+      },
+      // { $unwind: "$products" },
+      {
+        $lookup: {
+          from: "users",
+          localField: "userId",
+          foreignField: "_id",
+          as: "users",
+        },
+      },
+      { $unwind: "$users" }, //array to object (like populate)
+      {
+        $project: {
+          _id: 1,
+          date: "$date",
+          userId: "$users",
+          createdAt: "$createdAt",
+          products: "$productsByPurchase",
+        },
+      },
+    ]);
+
+    res.status(200).json(await db.getAggregatedItems(req, model, aggregated));
+  } catch (error) {
+    console.log("el error: ", error);
+    utils.handleError(res, error);
+  }
+};
 
 const listOne = async (req, res) => {
   try {
@@ -31,13 +77,39 @@ const listOne = async (req, res) => {
 
 const create = async (req, res) => {
   try {
-    res.status(200).json(await db.createItem(req.body, model));
+    //create purchase
+    req.body.userId = req.user._id;
+    //populate with purchased products
+    let products = req.body.products;
+    if (products.length === 0)
+      throw utils.buildErrObject(422, "No agregaste productos a la compra");
+    //adding new purchase id to products
+    let createdPurchase = await db.createItem(req.body, model);
+    for (const product of products) {
+      product.purchaseId = createdPurchase.payload._id;
+    }
+    //creating purchases details rows
+    let purchasedProducts = await Promise.all(
+      products.map((product) => db.createItem(product, PurchasesDetail))
+    );
+    purchasedProducts = purchasedProducts.map(
+      (purchasedProduct) => purchasedProduct.payload
+    );
+    //return purchase id with products
+    res.status(200).json({
+      ok: true,
+      payload: {
+        products: purchasedProducts,
+        ...createdPurchase.payload.toObject(),
+      },
+    });
   } catch (error) {
     utils.handleError(res, error);
   }
 };
 const update = async (req, res) => {
   try {
+    req.body.userId = req.user._id;
     const id = await utils.isIDGood(req.params.id);
     res.status(200).json(await db.updateItem(id, model, req.body));
   } catch (error) {
@@ -57,6 +129,7 @@ module.exports = {
   list,
   listAll,
   listOne,
+  listWithProducts,
   create,
   update,
   deletes,

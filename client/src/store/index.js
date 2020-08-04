@@ -9,9 +9,7 @@ Vue.use(Vuex);
 export default new Vuex.Store({
   modules: modules,
   state: {
-    token: localStorage.getItem("token") || "",
-    user: null,
-    users: [],
+    itemsPerPage: 20,
     snackbar: {
       text: "",
       active: false,

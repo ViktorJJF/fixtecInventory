@@ -1,29 +1,13 @@
-const Sales = require("../models/SalesDetails.js");
 const Product = require("../models/Products.js");
 
-const updateStock = (productId, qty) => {
-  return new Promise((resolve, reject) => {
-    Product.findOne(
-      {
-        _id: productId,
-      },
-      (err, product) => {
-        if (err) {
-          return console.log(err);
-        }
-        product
-          .update({
-            stock: product.stock + qty,
-          })
-          .then(() => {
-            resolve();
-          })
-          .catch((err) => {
-            console.log(err);
-          });
-      }
-    );
-  });
+const updateStock = async (productId, qty) => {
+  try {
+    let product = await Product.findOne({ _id: productId });
+    product.stock = product.stock + qty; // send + or -
+    await product.save();
+  } catch (error) {
+    throw error;
+  }
 };
 
 module.exports = {

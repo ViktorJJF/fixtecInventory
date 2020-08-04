@@ -5,6 +5,7 @@ let brandSchema = new Schema(
   {
     name: {
       type: String,
+      unique: true,
       required: [true, "El nombre de la marca es requerido"],
     },
     description: String,
@@ -18,6 +19,7 @@ let brandSchema = new Schema(
     },
   },
   {
+    versionKey: false,
     timestamps: true,
   }
 );

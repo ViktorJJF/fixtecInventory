@@ -1,12 +1,9 @@
 const mongoose = require("mongoose");
 const SalesDetail = require("../models/SalesDetails.js");
-const Product = require("../models/Products.js");
-
-const middlewares = require("../mongoMiddlewares/Middlewares");
 
 let Schema = mongoose.Schema;
 
-let orderSchema = new Schema(
+let saleSchema = new Schema(
   {
     userId: {
       type: Schema.Types.ObjectId,
@@ -16,50 +13,30 @@ let orderSchema = new Schema(
       type: Boolean,
       default: true,
     },
+    date: {
+      type: Date,
+      default: Date.now,
+    },
   },
   {
+    versionKey: false,
     timestamps: true,
   }
 );
 
-orderSchema.post("findOneAndUpdate", async function () {
-  // deleting on cascade and updating stock
-  let orderId = this._conditions._id;
-  SalesDetail.find(
-    {
-      orderId,
-    },
-    (err, SalesDetails) => {
-      SalesDetails.forEach((detail) => {
-        Product.findOne(
-          {
-            _id: detail.productId,
-          },
-          async (err, product) => {
-            if (err) {
-              return console.log(err);
-            }
-            await middlewares.updateStock(product._id, detail.qty);
-          }
-        );
-      });
+const deleteSalesDetailsProducts = async function (next) {
+  try {
+    let salesDetails = await SalesDetail.find({ saleId: this._id });
+    for (const salesDetail of salesDetails) {
+      await salesDetail.remove();
     }
-  );
-  SalesDetail.updateMany(
-    {
-      orderId: orderId,
-    },
-    {
-      $set: {
-        status: false,
-      },
-    },
-    function (err, deletedCount) {
-      if (err) {
-        return console.log(err);
-      }
-    }
-  );
-});
+  } catch (error) {
+    console.log(error);
+  }
+  next();
+};
 
-module.exports = mongoose.model("Orders", orderSchema);
+//hooks
+saleSchema.pre("remove", deleteSalesDetailsProducts);
+
+module.exports = mongoose.model("Sales", saleSchema);

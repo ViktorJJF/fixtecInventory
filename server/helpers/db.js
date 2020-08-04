@@ -38,12 +38,13 @@ function renameKey(object, key, newKey) {
  * @param {Object} query - query object
  */
 const listInitOptions = async (req) => {
+  console.log("vino esto llama: ", req.query);
   return new Promise((resolve) => {
-    const order = req.query.order || -1;
+    const order = parseInt(req.query.order) || 1;
     const sort = req.query.sort || "createdAt";
     const sortBy = buildSort(sort, order);
     const page = parseInt(req.query.page, 10) || 1;
-    const limit = parseInt(req.query.limit, 10) || 999999;
+    const limit = parseInt(req.query.limit, 10) || 99999;
     const options = {
       sort,
       sort: sortBy,
@@ -51,6 +52,7 @@ const listInitOptions = async (req) => {
       page,
       limit,
     };
+    console.log("se resolveran estas opciones: ", options);
     resolve(options);
   });
 };
@@ -62,6 +64,8 @@ module.exports = {
    * query.fields should be the fields to search into (array)
    * @param {Object} query - query object
    */
+  listInitOptions,
+  renameKey,
   async checkQueryString(query) {
     return new Promise((resolve, reject) => {
       try {
@@ -139,6 +143,23 @@ module.exports = {
           reject(buildErrObject(422, err.message));
         }
         resolve({ ok: true, ...cleanPaginationID(items) });
+      });
+    });
+  },
+  /**
+   * Gets aggregated items from database
+   * @param {Object} req - request object
+   * @param {Object} query - query object
+   */
+  async getAggregatedItems(req, model, aggregated) {
+    const options = await listInitOptions(req);
+    return new Promise((resolve, reject) => {
+      model.aggregatePaginate(aggregated, options, (err, items) => {
+        if (err) {
+          reject(buildErrObject(422, err.message));
+        } else {
+          resolve({ ok: true, ...cleanPaginationID(items) });
+        }
       });
     });
   },

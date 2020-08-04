@@ -54,5 +54,11 @@ new Vue({
     Chartist: Chartist,
   },
   store,
+  created() {
+    console.log(store.getters["authModule/isTokenSet"]);
+    if (store.getters["authModule/isTokenSet"]) {
+      store.dispatch("authModule/autoLogin");
+    }
+  },
   render: (h) => h(App),
 }).$mount("#app");

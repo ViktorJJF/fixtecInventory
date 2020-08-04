@@ -6,22 +6,9 @@ Vue.use(Router);
 
 let routes = [
   {
-    path: "/",
-    component: () => import("@/layouts/home"),
-    meta: {
-      guest: true,
-    },
-    children: [
-      {
-        path: "",
-        redirect: "/login",
-      },
-      {
-        path: "/login",
-        name: "login",
-        component: () => import("./views/authPages/login.vue"),
-      },
-    ],
+    path: "/login",
+    name: "login",
+    component: () => import("./views/authPages/login.vue"),
   },
   {
     path: "/",
@@ -45,6 +32,11 @@ let routes = [
         component: () => import("@/views/drawerPages/brands.vue"),
       },
       {
+        path: "/calidades",
+        name: "qualities",
+        component: () => import("@/views/drawerPages/qualities.vue"),
+      },
+      {
         path: "/tipos",
         name: "type",
         component: () => import("@/views/drawerPages/types.vue"),
@@ -66,12 +58,12 @@ let routes = [
       },
       {
         path: "/ventas/crear",
-        name: "addOrder",
+        name: "addSale",
         component: () => import("@/views/drawerPages/addSale.vue"),
       },
       {
         path: "/ventas/historial",
-        name: "orderHistory",
+        name: "salesHistory",
         component: () => import("@/views/drawerPages/salesHistory.vue"),
       },
       {
@@ -89,7 +81,27 @@ let routes = [
         name: "historyPurchase",
         component: () => import("@/views/drawerPages/historyPurchase.vue"),
       },
+      {
+        path: "/inversiones",
+        name: "tools",
+        component: () => import("@/views/drawerPages/tools.vue"),
+      },
+      {
+        path: "/ganancias-diarias",
+        name: "reportDailyRevenue",
+        component: () => import("@/views/drawerPages/reportDailyRevenue.vue"),
+      },
+      {
+        path: "/ganancias-por-producto",
+        name: "reportRevenuePerProduct",
+        component: () =>
+          import("@/views/drawerPages/reportRevenuePerProduct.vue"),
+      },
     ],
+  },
+  {
+    path: "*",
+    component: () => import("@/components/common/notFound.vue"),
   },
 ];
 
@@ -98,45 +110,17 @@ const router = new Router({
   mode: "history",
 });
 
-router.beforeEach(async (to, from, next) => {
-  if (!store.state.user) {
-    store.state.user = JSON.parse(localStorage.getItem("user"));
-    store.state.token = JSON.parse(localStorage.getItem("token"));
+router.beforeEach((to, from, next) => {
+  // checkForUpdates();
+  const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
+  const isTokenSet = store.getters["authModule/isTokenSet"];
+  if (requiresAuth && !isTokenSet) {
+    return next({ name: "login" });
   }
-  if (to.matched.some((record) => record.meta.requiresAuth)) {
-    if (!store.state.user) {
-      next({
-        name: "login",
-        params: {
-          nextUrl: to.fullPath,
-        },
-      });
-    } else {
-      let user = store.state.user;
-      if (to.matched.some((record) => record.meta.requiresAuth)) {
-        console.log("aea alpaca");
-        if (user.role == "ADMIN") {
-          next();
-        } else {
-          next({
-            name: "dashboard",
-          });
-        }
-      } else {
-        next();
-      }
-    }
-  } else if (to.matched.some((record) => record.meta.guest)) {
-    if (store.state.user == null) {
-      next();
-    } else {
-      next({
-        name: "dashboard",
-      });
-    }
-  } else {
-    next();
-  }
+  // checkIfTokenNeedsRefresh();
+  // store.commit("successModule/success", null);
+  // store.commit("errorModule/error", null);
+  return next();
 });
 
 export default router;

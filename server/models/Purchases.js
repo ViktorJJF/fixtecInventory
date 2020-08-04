@@ -1,12 +1,9 @@
 const mongoose = require("mongoose");
-const PurchaseDetail = require("../models/PurchaseDetails");
-const Product = require("../models/Products.js");
-
-const middlewares = require("../mongoMiddlewares/Middlewares");
+const PurchasesDetail = require("../models/PurchasesDetails.js");
 
 let Schema = mongoose.Schema;
 
-let purchasesSchema = new Schema(
+let purchaseSchema = new Schema(
   {
     userId: {
       type: Schema.Types.ObjectId,
@@ -16,50 +13,30 @@ let purchasesSchema = new Schema(
       type: Boolean,
       default: true,
     },
+    date: {
+      type: Date,
+      default: Date.now,
+    },
   },
   {
+    versionKey: false,
     timestamps: true,
   }
 );
 
-purchasesSchema.post("findOneAndUpdate", async function () {
-  // deleting on cascade and updating stock
-  let purchaseId = this._conditions._id;
-  PurchaseDetail.find(
-    {
-      purchaseId,
-    },
-    (err, purchaseDetail) => {
-      purchaseDetail.forEach((detail) => {
-        Product.findOne(
-          {
-            _id: detail.productId,
-          },
-          async (err, product) => {
-            if (err) {
-              return console.log(err);
-            }
-            await middlewares.updateStock(product._id, -detail.qty);
-          }
-        );
-      });
+const deletePurchasesDetailsProducts = async function (next) {
+  try {
+    let purchasesDetails = await PurchasesDetail.find({ purchaseId: this._id });
+    for (const purchasesDetail of purchasesDetails) {
+      await purchasesDetail.remove();
     }
-  );
-  PurchaseDetail.updateMany(
-    {
-      purchaseId: purchaseId,
-    },
-    {
-      $set: {
-        status: false,
-      },
-    },
-    function (err, deletedCount) {
-      if (err) {
-        return console.log(err);
-      }
-    }
-  );
-});
+  } catch (error) {
+    console.log(error);
+  }
+  next();
+};
 
-module.exports = mongoose.model("Purchases", purchasesSchema);
+//hooks
+purchaseSchema.pre("remove", deletePurchasesDetailsProducts);
+
+module.exports = mongoose.model("Purchases", purchaseSchema);

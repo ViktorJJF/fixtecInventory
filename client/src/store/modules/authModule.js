@@ -3,14 +3,16 @@ import api from "@/services/api/auth";
 import { buildSuccess, handleError } from "@/utils/utils.js";
 
 const state = () => ({
-  user: localStorage.getItem("user") || null,
-  token: localStorage.getItem("token") || null,
+  user: null,
+  token: JSON.parse(!!localStorage.getItem("token")) || null,
+  isTokenSet: !!localStorage.getItem("token"),
 });
 
 const getters = {
   user: (state) =>
     state.user ? state.user.first_name + " " + state.user.last_name : " ",
   token: (state) => (state.user ? state.user.token : " "),
+  isTokenSet: (state) => state.isTokenSet,
 };
 const actions = {
   initialLoad({ commit }) {
@@ -20,37 +22,79 @@ const actions = {
   },
   login({ commit }, { email, password }) {
     return new Promise((resolve, reject) => {
-      console.log("empezando login");
+      commit("loadingModule/showLoading", true, { root: true });
       api
         .login(email, password)
-        .then((res) => {
-          let data = res.data;
-          //   commit("loadingModule/showLoading", true, { root: true });
-          buildSuccess("Bienvenido", commit, resolve);
-          console.log("inicio correcto", data);
-          localStorage.setItem("token", JSON.stringify(data.token));
-          localStorage.setItem("user", JSON.stringify(data.user));
-          commit("login", data.user);
-          resolve();
+        .then((response) => {
+          if (response.status === 200) {
+            window.localStorage.setItem(
+              "user",
+              JSON.stringify(response.data.user)
+            );
+            window.localStorage.setItem(
+              "token",
+              JSON.stringify(response.data.token)
+            );
+            // window.localStorage.setItem(
+            //   "tokenExpiration",
+            //   JSON.stringify(
+            //     format(
+            //       addMinutes(new Date(), MINUTES_TO_CHECK_FOR_TOKEN_REFRESH),
+            //       "X"
+            //     )
+            //   )
+            // );
+            commit("saveUser", response.data.user);
+            commit("saveToken", response.data.token);
+            // commit(types.EMAIL_VERIFIED, response.data.user.verified);
+            buildSuccess("Bienvenido", commit);
+            resolve();
+          }
         })
         .catch((error) => {
           handleError(error, commit, reject);
         });
     });
   },
-  logout({ commit }) {
+  refreshToken({ commit }) {
     return new Promise((resolve, reject) => {
       api
-        .logout()
-        .then(() => {
-          localStorage.removeItem("token");
-          commit("logout");
-          resolve();
+        .refreshToken()
+        .then((response) => {
+          if (response.status === 200) {
+            window.localStorage.setItem(
+              "token",
+              JSON.stringify(response.data.token)
+            );
+            // window.localStorage.setItem(
+            //   "tokenExpiration",
+            //   JSON.stringify(
+            //     format(
+            //       addMinutes(new Date(), MINUTES_TO_CHECK_FOR_TOKEN_REFRESH),
+            //       "X"
+            //     )
+            //   )
+            // );
+            commit("saveToken", response.data.token);
+            resolve();
+          }
         })
         .catch((error) => {
           handleError(error, commit, reject);
         });
     });
+  },
+  autoLogin({ commit }) {
+    const user = JSON.parse(localStorage.getItem("user"));
+    commit("saveUser", user);
+    commit("saveToken", JSON.parse(localStorage.getItem("token")));
+    // commit(types.EMAIL_VERIFIED, user.verified);
+  },
+  logout({ commit }) {
+    window.localStorage.removeItem("token");
+    window.localStorage.removeItem("tokenExpiration");
+    window.localStorage.removeItem("user");
+    commit("logout");
   },
   // editUser({ commit }, { id, data }) {
   //   return new Promise((resolve, reject) => {
@@ -70,19 +114,17 @@ const actions = {
   // },
 };
 const mutations = {
-  login(state, data) {
-    state.user = data;
+  saveToken(state, token) {
+    state.token = token;
+    state.isTokenSet = true;
   },
   logout(state) {
     state.user = null;
     state.token = null;
+    state.isTokenSet = false;
   },
-  editUser(state, data) {
-    state.user = data;
-  },
-  initialLoad(state) {
-    state.user = JSON.parse(localStorage.getItem("user"));
-    state.token = JSON.parse(localStorage.getItem("token"));
+  saveUser(state, user) {
+    state.user = user;
   },
 };
 

@@ -2,6 +2,15 @@ const mongoose = require("mongoose");
 const requestIp = require("request-ip");
 const { validationResult } = require("express-validator");
 
+exports.selectRandomId = (collection) => {
+  return collection[this.Random(0, collection.length - 1)]._id;
+};
+
+exports.Random = (min, max) => {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+};
 /**
  * Removes extension from file
  * @param {string} file - filename

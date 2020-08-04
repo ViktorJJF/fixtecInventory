@@ -3,9 +3,9 @@ let Schema = mongoose.Schema;
 
 let productSchema = new Schema(
   {
-    model: {
+    name: {
       type: String,
-      required: [true, "El nombre del modelo es requerido"],
+      required: [true, "El nombre del producto es requerido"],
     },
     typeId: {
       type: Schema.Types.ObjectId,
@@ -14,10 +14,6 @@ let productSchema = new Schema(
     brandId: {
       type: Schema.Types.ObjectId,
       ref: "Brands",
-    },
-    colorId: {
-      type: Schema.Types.ObjectId,
-      ref: "Colors",
     },
     colorId: {
       type: Schema.Types.ObjectId,
@@ -43,7 +39,10 @@ let productSchema = new Schema(
       type: Number,
       default: 0,
     },
-    price: Number,
+    price: {
+      type: Number,
+      default: 0,
+    },
     description: String,
     status: {
       type: Boolean,
@@ -55,8 +54,33 @@ let productSchema = new Schema(
     },
   },
   {
+    versionKey: false,
     timestamps: true,
   }
 );
+
+//auto populate
+var autoPopulateLead = function (next) {
+  console.log("se paso por products gaea");
+  this.populate("typeId");
+  this.populate("brandId");
+  this.populate("colorId");
+  this.populate("qualityId");
+  next();
+};
+var autoPopulateLead2 = function (doc, next) {
+  doc
+    .populate("typeId")
+    .populate("brandId")
+    .populate("colorId")
+    .populate("qualityId")
+    .execPopulate()
+    .then(function () {
+      next();
+    });
+};
+
+productSchema.pre("findOne", autoPopulateLead).pre("find", autoPopulateLead);
+productSchema.post("save", autoPopulateLead2);
 
 module.exports = mongoose.model("Products", productSchema);

@@ -1,181 +1,251 @@
 <template>
-  <custom-card title="Realizar compra" icon="mdi-plus">
+  <custom-card title="Realizar Compra" icon="mdi-plus">
     <template v-slot:content>
       <v-container>
-        <v-btn color="primary" @click="addpurchase" class="mr-3 my-3">
-          <v-icon left>mdi-plus</v-icon>Agregar
+        <v-alert prominent type="error" v-show="historyMode">
+          <v-col
+            class="grow"
+          >Aviso: Estás en el modo de compras históricas, por lo que las compras que registres no modificarán tu stock actual.</v-col>
+        </v-alert>
+        <v-row align="center">
+          <p class="body-1 font-weight-bold d-inline mx-3">Fecha:</p>
+          <v-menu
+            v-model="menu"
+            :close-on-content-click="false"
+            transition="scale-transition"
+            offset-y
+            max-width="290px"
+            min-width="290px"
+          >
+            <template v-slot:activator="{ on, attrs }">
+              <v-text-field
+                class="date-width"
+                v-model="date"
+                persistent-hint
+                prepend-inner-icon="event"
+                readonly
+                v-bind="attrs"
+                v-on="on"
+                outlined
+                dense
+              ></v-text-field>
+            </template>
+            <v-date-picker v-model="date" no-title @input="menu = false"></v-date-picker>
+          </v-menu>
+          <v-spacer></v-spacer>
+          <v-switch
+            v-model="historyMode"
+            :label="'Modo histórico: '+(historyMode?'Activo':'Inactivo')"
+          ></v-switch>
+        </v-row>
+        <v-btn tile color="primary" class="my-3">
+          <v-icon left>search</v-icon>Búsqueda
         </v-btn>
-        <v-btn color="primary" :to="{name:'historyPurchase'}">
-          <v-icon left>mdi-magnify</v-icon>Ver historial
+        <v-autocomplete
+          @keyup.enter="addPurchase(selectedProduct)"
+          placeholder="Escribe el nombre del producto"
+          :loading="productsLoading"
+          @click="productsList"
+          @change="addPurchase(selectedProduct)"
+          class="search-field mr-3"
+          v-model="selectedProduct"
+          :items="products"
+          item-text="name"
+          item-value="_id"
+          :return-object="true"
+          dense
+          outlined
+        >
+          <template v-slot:no-data>
+            <v-container fluid class="text-center" v-if="productsLoading">
+              <v-progress-circular indeterminate color="primary"></v-progress-circular>
+            </v-container>
+          </template>
+        </v-autocomplete>
+        <v-btn outlined color="primary" :to="{name:'historyPurchase'}">
+          <v-icon left>mdi-format-list-checks</v-icon>Ver historial
         </v-btn>
-        <v-alert
-          class="my-5"
-          v-show="purchase.length==0"
-          color="error"
-          text
-        >Agrega productos a esta compra</v-alert>
-        <v-alert text type="error" :value="validateError">Es necesario agregar al menos 1 producto</v-alert>
         <v-simple-table>
           <template v-slot:default>
             <thead>
               <tr>
-                <th class="text-left">Producto</th>
-                <th class="text-left">Cantidad</th>
-                <th class="text-left">Precio</th>
-                <th class="text-left">Subtotal</th>
-                <th class="text-left">Eliminar producto</th>
+                <th class="text-left">
+                  <span>Producto</span>
+                </th>
+                <th class="text-left">
+                  <span>Cantidad</span>
+                </th>
+                <th class="text-left">
+                  <span>Precio</span>
+                </th>
+                <th class="text-left">
+                  <span>Subtotal</span>
+                </th>
+                <th class="text-left">
+                  <span>Eliminar producto</span>
+                </th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(product,purchaseIndex) in purchase" :key="product.productId">
+              <tr v-for="(product,purchasesIndex) in purchases" :key="'b'+purchasesIndex">
+                <td>{{product.productDetails.name}}</td>
                 <td>
-                  <v-container>
-                    <v-select
-                      placeholder="Seleccione el producto"
-                      :suffix="'Stock:'+ $store.getters.getproductStock(product.productId)"
-                      v-model="product.productId"
-                      :items="products"
-                      item-text="model"
-                      item-value="_id"
-                      @change="purchase[purchaseIndex].purchasePrice=getProductPurchasePrice(product.productId)"
-                    ></v-select>
-                  </v-container>
+                  <v-text-field
+                    class="inputs-width"
+                    suffix="unidades"
+                    v-model="product.qty"
+                    type="number"
+                  ></v-text-field>
                 </td>
                 <td>
-                  <v-text-field v-model="product.qty" type="number"></v-text-field>
+                  <v-text-field
+                    class="inputs-width"
+                    prefix="S/."
+                    v-model="product.purchasePrice"
+                    type="number"
+                  ></v-text-field>
                 </td>
-                <td>S/.{{product.purchasePrice}}</td>
                 <td>S/.{{product.purchasePrice*product.qty}}</td>
                 <td>
-                  <v-btn small color="error" @click="deletepurchase(purchaseIndex)">Eliminar</v-btn>
+                  <v-btn small color="error" @click="deletePurchase(purchasesIndex)">Eliminar</v-btn>
                 </td>
               </tr>
             </tbody>
           </template>
         </v-simple-table>
-        <v-row justify="end" class="mr-3">
-          <v-card outlined color="red lighten-5" class="pa-3">
-            <strong class="mr-3">Total:</strong>
+        <v-alert
+          class="my-5"
+          v-show="purchases.length==0"
+          type="warning"
+          text
+        >Aún no agregaste productos a esta compra</v-alert>
+        <v-row justify="end" class="mr-3 mb-3">
+          <v-card dark outlined color="info" class="pa-3">
+            <strong class="text--white">Total:</strong>
             &nbsp;
             <span class="total">S/.{{getTotal}}</span>
           </v-card>
         </v-row>
-        <v-alert text type="error" :value="stockError">La cantidad vendida no puede superar el stock</v-alert>
-
-        <v-btn :loading="loadingButton" color="success" @click="savepurchase">Guardar compra</v-btn>
+        <v-btn
+          :loading="loadingButton"
+          color="success"
+          @click="savePurchase(purchases,date)"
+        >Terminar Compra</v-btn>
       </v-container>
     </template>
   </custom-card>
 </template>
 
 <script>
-import axios from "axios";
 export default {
   data() {
     return {
-      purchase: [],
+      historyMode: false,
+      selectedProduct: null,
+      date: new Date().toISOString().substr(0, 10),
+      menu: false,
+      purchases: [],
       total: 0,
+      productsLoading: false,
       loadingButton: false,
-      validateError: false,
-      stockError: false
     };
   },
   methods: {
-    deletepurchase(purchaseIndex) {
-      this.purchase.splice(purchaseIndex, 1);
+    deletePurchase(purchasesIndex) {
+      this.purchases.splice(purchasesIndex, 1);
     },
-    addpurchase() {
-      this.purchase.push({
-        productId: "",
-        qty: 1,
-        purchasePrice: 0
-      });
-    },
-    getProductPurchasePrice(model) {
-      return this.$store.getters.getProductPurchasePrice(model);
-    },
-    validateForm() {
-      if (this.purchase.length === 0) {
-        this.validateError = true;
-        return false;
-      }
-      this.stockError = false;
-      this.validateError = false;
-      return true;
-    },
-    async savepurchase() {
-      if (!this.validateForm()) return false;
-      this.loadingButton = true;
-      this.$store.dispatch("showOverlay", true);
-      await this.apiCalls();
-      this.updateStoreStock();
-      this.$store.dispatch("showSnackbar", {
-        text: "Venta agregada con éxito",
-        color: "success"
-      });
-      this.loadingButton = false;
-      this.$store.dispatch("showOverlay", false);
-      this.purchase = [];
-    },
-    updateStoreStock() {
-      this.purchase.forEach(detail => {
-        this.$store.dispatch("updateStock", {
-          type: "purchase",
-          productId: detail.productId,
-          qty: parseInt(detail.qty)
+    addPurchase(product) {
+      if (product) {
+        this.purchases.push({
+          productDetails: product,
+          productId: product._id,
+          qty: 1,
+          purchasePrice: product.price,
+          history: this.historyMode,
         });
-      });
+      }
     },
-    apiCalls() {
-      return new Promise((resolve, reject) => {
-        //creating sale
-        axios
-          .post("/api/purchases/create", {
-            userId: this.$store.getters.getUserId
-          })
-          .then(res => {
-            //creating sale details
-            let purchaseId = res.data.payload._id;
-            this.purchase.forEach(product => {
-              axios
-                .post("/api/purchase-details/create", {
-                  purchaseId: purchaseId,
-                  productId: product.productId,
-                  purchasePrice: product.purchasePrice,
-                  qty: parseInt(product.qty)
-                })
-                .then(res => {
-                  console.log(res);
-                  resolve();
-                })
-                .catch(err => {
-                  console.error(err);
-                  reject(err);
-                });
+    async savePurchase(products, date) {
+      this.loadingButton = true;
+      products = this.$deepCopy(products);
+      //delete unnecesary info
+      for (const product of products) {
+        delete product["productDetails"];
+      }
+      //validate if historyMode, set history mode to products
+      if (this.historyMode) {
+        for (const product of products) {
+          product.history = true;
+        }
+      } else {
+        for (const product of products) {
+          product.history = false;
+        }
+      }
+      //set hour
+      let currentDate = new Date();
+      let currentDay = currentDate.getDate();
+      let currentHours = currentDate.getHours();
+      let currentMinutes = currentDate.getMinutes();
+      let currentSeconds = currentDate.getSeconds();
+      let purchaseDate = new Date(date);
+      purchaseDate = new Date(purchaseDate.setDate(currentDay));
+      purchaseDate = new Date(purchaseDate.setHours(currentHours));
+      purchaseDate = new Date(purchaseDate.setMinutes(currentMinutes));
+      purchaseDate = new Date(purchaseDate.setSeconds(currentSeconds));
+      //create purchase
+      try {
+        await this.$store.dispatch("purchasesModule/create", {
+          products,
+          date: purchaseDate,
+        });
+        for (const product of products) {
+          if (!product.history) {
+            this.$store.commit("productsModule/updateStock", {
+              productId: product.productId,
+              qty: parseInt(product.qty),
             });
-          })
-          .catch(err => {
-            console.error(err);
-          });
-      });
-    }
+          }
+        }
+        this.purchases = [];
+      } finally {
+        this.loadingButton = false;
+      }
+    },
+    async productsList() {
+      if (this.products.length === 0) {
+        this.productsLoading = true;
+        try {
+          await this.$store.dispatch("productsModule/list");
+        } finally {
+          this.productsLoading = false;
+        }
+      }
+    },
   },
   computed: {
     products() {
-      return this.$store.getters.getProducts;
+      return this.$store.state.productsModule.products;
     },
     getTotal() {
-      return this.purchase.reduce(
-        (a, b) => a + this.getProductPurchasePrice(b.productId) * b.qty,
-        0
-      );
-    }
-  }
+      return this.purchases.reduce((a, b) => a + b.purchasePrice * b.qty, 0);
+    },
+  },
 };
 </script>
 
 <style lang="scss" scoped>
 .total {
   font-size: 24px;
+}
+.date-width {
+  max-width: 300px;
+}
+.search-field {
+  display: inline-block;
+  width: 300px;
+}
+.inputs-width {
+  max-width: 150px;
 }
 </style>

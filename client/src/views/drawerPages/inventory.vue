@@ -2,7 +2,14 @@
   <custom-card title="Consulta de inventario" icon="mdi-magnify">
     <template v-slot:content>
       <v-card>
-        <v-tabs v-model="tab" background-color="primary" centered dark icons-and-text>
+        <v-tabs
+          v-model="tab"
+          background-color="primary"
+          centered
+          dark
+          icons-and-text
+          @change="checkTab"
+        >
           <v-tabs-slider></v-tabs-slider>
 
           <v-tab href="#tab-1">
@@ -27,7 +34,7 @@
                 :items="filteredProducts"
                 @page-count="pageCount = $event"
                 :page.sync="page"
-                :items-per-page="itemsPerPage"
+                :items-per-page="$store.state.itemsPerPage"
               >
                 <template v-slot:top>
                   <v-container fluid>
@@ -39,15 +46,13 @@
                           hide-details
                           v-model="search"
                           append-icon="search"
-                          placeholder="Escribe el modelo del producto"
+                          placeholder="Escribe el nombre del producto"
                           single-line
                           outlined
                         ></v-text-field>
                       </v-col>
                       <v-col cols="12" sm="4">
-                        <span
-                          class="font-weight-bold"
-                        >Filtrar por tipo: {{$store.getters.getTypeById(selectedType)}}</span>
+                        <span class="font-weight-bold">Filtrar por tipo:</span>
                         <v-select
                           clearable
                           @click:clear="showAllTypes()"
@@ -62,9 +67,7 @@
                         ></v-select>
                       </v-col>
                       <v-col cols="12" sm="4">
-                        <span
-                          class="font-weight-bold"
-                        >Filtrar por marca: {{$store.getters.getBrandById(selectedBrand)}}</span>
+                        <span class="font-weight-bold">Filtrar por marca:</span>
                         <v-select
                           clearable
                           @click:clear="showAllBrands()"
@@ -84,29 +87,36 @@
                   <v-divider class="mx-4" inset vertical></v-divider>
                 </template>
                 <template v-slot:item.action="{ item }">
-                  <v-btn class="mr-3" small color="success" @click="editItem(item)">Editar</v-btn>
-                  <v-btn small color="error" @click="deleteItem(item)">Eliminar</v-btn>
+                  <v-btn class="mr-3 mb-2" small color="secondary" @click="editItem(item)">Editar</v-btn>
+                  <v-btn class="mb-2" small color="error" @click="deleteItem(item)">Eliminar</v-btn>
                 </template>
                 <template v-slot:item.stock="{ item }">
                   {{item.stock}}
-                  <v-icon color="green" v-show="item.stock>=5">mdi-checkbox-marked-circle</v-icon>
+                  <v-icon
+                    color="green"
+                    v-show="item.stock>=item.minStock"
+                  >mdi-checkbox-marked-circle</v-icon>
                   <v-tooltip bottom>
                     <template v-slot:activator="{ on }">
-                      <v-icon v-on="on" color="error" v-show="item.stock<5">mdi-alert-circle</v-icon>
+                      <v-icon
+                        v-on="on"
+                        color="error"
+                        v-show="item.stock<item.minStock"
+                      >mdi-alert-circle</v-icon>
                     </template>
                     <span>Stock por agotarse</span>
                   </v-tooltip>
                 </template>
                 <template v-slot:item.createdAt="{ item }">{{item.createdAt | formatDate}}</template>
-
+                <template v-slot:item.purchasePrice="{ item }">S/.{{item.purchasePrice}}</template>
                 <template v-slot:item.price="{ item }">S/.{{item.price}}</template>
                 <template
                   v-slot:item.brandId="{ item }"
-                >{{$store.getters.getBrandById(item.brandId)}}</template>
-                <template v-slot:item.typeId="{ item }">{{$store.getters.getTypeById(item.typeId)}}</template>
+                >{{item.brandId?item.brandId.name:"Sin marca"}}</template>
+                <template v-slot:item.typeId="{ item }">{{item.typeId?item.typeId.name:"Sin tipo"}}</template>
                 <template
                   v-slot:item.colorId="{ item }"
-                >{{$store.getters.getColorById(item.colorId)}}</template>
+                >{{item.colorId?item.colorId.name:"Sin color"}}</template>
                 <template v-slot:no-data>
                   <v-alert type="error" :value="true">No se encontraron datos</v-alert>
                 </template>
@@ -128,12 +138,12 @@
                     >Es necesario colocar el nombre del modelo</v-alert>
                     <v-row>
                       <v-col cols="12" sm="12">
-                        <span class="font-weight-bold">Modelo</span>
+                        <span class="font-weight-bold">Nombre</span>
                         <v-text-field
                           dense
                           hide-details
                           outlined
-                          v-model="editedItem.model"
+                          v-model="editedItem.name"
                           placeholder="Nombre del modelo"
                         ></v-text-field>
                       </v-col>
@@ -161,7 +171,7 @@
                           outlined
                         ></v-select>
                       </v-col>
-                      <v-col cols="12" sm="12">
+                      <v-col cols="12" sm="6">
                         <span class="font-weight-bold">Color</span>
                         <v-select
                           dense
@@ -172,6 +182,27 @@
                           item-value="_id"
                           outlined
                         ></v-select>
+                      </v-col>
+                      <v-col cols="12" sm="6">
+                        <span class="font-weight-bold">Calidad</span>
+                        <v-select
+                          dense
+                          hide-details
+                          v-model="editedItem.qualityId"
+                          placeholder="Selecciona una calidad"
+                          item-text="name"
+                          item-value="_id"
+                          :items="qualities"
+                          :loading="qualitiesLoading"
+                          @click="getQualities"
+                          outlined
+                        >
+                          <template v-slot:no-data>
+                            <v-container fluid class="text-center" v-if="qualitiesLoading">
+                              <v-progress-circular indeterminate color="primary"></v-progress-circular>
+                            </v-container>
+                          </template>
+                        </v-select>
                       </v-col>
                       <v-col cols="12" sm="4">
                         <span class="font-weight-bold">Precio de venta</span>
@@ -241,10 +272,7 @@
 <script>
 import addProduct from "./addProduct";
 import { format } from "date-fns";
-
 import Product from "../../classes/Product";
-import { customCopyObject } from "../../tools/customCopyObject";
-import { customHttpRequest } from "../../tools/customHttpRequest";
 export default {
   components: {
     addProduct,
@@ -257,8 +285,8 @@ export default {
   data: () => ({
     page: 1,
     pageCount: 0,
-    itemsPerPage: 10,
     loadingButton: false,
+    qualitiesLoading: false,
     validateError: false,
     tab: null,
     search: "",
@@ -266,11 +294,12 @@ export default {
     selectedType: null,
     selectedBrand: null,
     headers: [
-      { text: "Modelo", value: "model" },
+      { text: "Nombre", value: "name" },
       { text: "Tipo", value: "typeId", filterable: false },
       { text: "Marca", value: "brandId", filterable: false },
       { text: "Color", value: "colorId", filterable: false },
       { text: "Stock", value: "stock", filterable: false },
+      { text: "Precio de compra", value: "purchasePrice", filterable: false },
       { text: "Precio de venta", value: "price", filterable: false },
       {
         text: "Agregado",
@@ -282,8 +311,8 @@ export default {
     ],
     products: [],
     editedIndex: -1,
-    editedItem: Product,
-    defaultItem: customCopyObject(Product),
+    editedItem: Product(),
+    defaultItem: Product(),
   }),
 
   computed: {
@@ -291,23 +320,26 @@ export default {
       return "Editar producto";
     },
     brands() {
-      return this.$store.getters.getBrands;
+      return this.$store.state.brandsModule.brands;
     },
     types() {
-      return this.$store.getters.getTypes;
+      return this.$store.state.typesModule.types;
     },
     colors() {
-      return this.$store.getters.getColors;
+      return this.$store.state.colorsModule.colors;
+    },
+    qualities() {
+      return this.$store.state.qualitiesModule.qualities;
     },
     filteredProducts() {
       return this.selectedType || this.selectedBrand
         ? this.products.filter(
             (product) =>
               (this.selectedType
-                ? product.typeId === this.selectedType
+                ? product.typeId._id === this.selectedType
                 : true) &&
               (this.selectedBrand
-                ? product.brandId === this.selectedBrand
+                ? product.brandId._id === this.selectedBrand
                 : true)
           )
         : this.products;
@@ -326,7 +358,7 @@ export default {
 
   methods: {
     initialize() {
-      this.products = this.$store.state.products;
+      this.products = this.$deepCopy(this.$store.state.productsModule.products);
     },
     showAllTypes() {
       this.selectedType = null;
@@ -340,11 +372,11 @@ export default {
       this.dialog = true;
     },
 
-    deleteItem(item) {
+    async deleteItem(item) {
       const index = this.products.indexOf(item);
-      let productId = this.products[index]._id;
-      if (confirm("¿Seguro que deseas eliminar este elemento?")) {
-        customHttpRequest("delete", "/api/products/delete/" + productId);
+      let itemId = this.products[index]._id;
+      if (await this.$confirm("¿Realmente deseas eliminar este registro?")) {
+        await this.$store.dispatch("productsModule/delete", itemId);
         this.products.splice(index, 1);
       }
     },
@@ -364,24 +396,38 @@ export default {
       this.validateError = false;
       return true;
     },
-    save() {
-      if (!this.validateForm()) return false;
-      let productId = this.products[this.editedIndex]._id;
-      //update type
+    async save() {
+      //update item
       this.loadingButton = true;
-      customHttpRequest(
-        "put",
-        "/api/products/update/" + productId,
-        this.editedItem,
-        (err) => {
-          if (err) {
-            return (this.loadingButton = false);
-          }
-          Object.assign(this.products[this.editedIndex], this.editedItem);
-          this.loadingButton = false;
+      if (this.editedIndex > -1) {
+        let itemId = this.products[this.editedIndex]._id;
+        try {
+          let updatedItem = await this.$store.dispatch(
+            "productsModule/update",
+            {
+              id: itemId,
+              data: this.editedItem,
+            }
+          );
+          Object.assign(this.products[this.editedIndex], updatedItem);
           this.close();
+        } finally {
+          this.loadingButton = false;
         }
-      );
+      }
+    },
+    async getQualities() {
+      if (this.qualities.length === 0) {
+        this.qualitiesLoading = true;
+        try {
+          await this.$store.dispatch("qualitiesModule/list");
+        } finally {
+          this.qualitiesLoading = false;
+        }
+      }
+    },
+    checkTab(tab) {
+      if (tab === "tab-1") this.initialize();
     },
   },
 };

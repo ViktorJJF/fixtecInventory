@@ -7,7 +7,7 @@ let qualitiesSchema = new Schema(
   {
     name: {
       type: String,
-      required: [true, "El nombre del tipo es requerido"],
+      required: [true, "El nombre de la calidad es requerido"],
     },
     description: String,
     status: {
@@ -20,6 +20,7 @@ let qualitiesSchema = new Schema(
     },
   },
   {
+    versionKey: false,
     timestamps: true,
   }
 );

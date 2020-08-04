@@ -2,11 +2,11 @@
   <custom-card title="Estadísticas" icon="mdi-chart-bar">
     <template v-slot:content>
       <div v-for="product in getProducts" :key="product.id">
-        <v-alert prominent type="warning" v-show="product.stock<5">
+        <v-alert prominent type="error" v-show="product.stock<product.minStock">
           <v-row align="center">
             <v-col class="grow">
               Tu producto
-              <strong class="underline">{{product.model}}</strong>
+              <strong class="underline">{{product.name}}</strong>
               está a punto de agotarse (stock actual: {{product.stock}})
             </v-col>
           </v-row>
@@ -245,7 +245,7 @@ export default {
     };
   },
   mounted() {
-    this.getInitialData();
+    // this.getInitialData();
   },
   methods: {
     async getInitialData() {
@@ -270,16 +270,16 @@ export default {
   },
   computed: {
     getProducts() {
-      return this.$store.getters.getProducts;
+      return this.$store.state.productsModule.products;
     },
     brands() {
-      return this.$store.getters.getBrands;
+      return this.$store.state.brandsModule.brands;
     },
     types() {
-      return this.$store.getters.getTypes;
+      return this.$store.state.typesModule.types;
     },
     colors() {
-      return this.$store.getters.getColors;
+      return this.$store.state.colorsModule.colors;
     },
   },
 };

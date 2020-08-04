@@ -74,10 +74,17 @@ export const formatErrorMessages = (translationParent, msg) => {
 };
 
 export const buildPayloadPagination = (pagination, search) => {
-  const { sortBy, page, rowsPerPage } = pagination;
-  let { descending } = pagination;
-  // Gets order
-  descending = descending ? -1 : 1;
+  const { page, itemsPerPage } = pagination;
+  let { sortDesc, sortBy } = pagination;
+
+  // When sorting you always get both values
+  if (sortBy && sortDesc)
+    if (sortBy.length === 1 && sortDesc.length === 1) {
+      // Gets order
+      sortDesc = sortDesc[0] === true ? -1 : 1;
+      // Gets column to sort on
+      sortBy = sortBy ? sortBy[0] : "";
+    }
 
   let query = {};
 
@@ -85,19 +92,24 @@ export const buildPayloadPagination = (pagination, search) => {
   if (search) {
     query = {
       sort: sortBy,
-      order: descending,
+      order: sortDesc,
       page,
-      limit: rowsPerPage,
+      limit: itemsPerPage,
       filter: search.query,
       fields: search.fields,
     };
-  } else {
+  } else if (sortBy && sortDesc) {
     // Pagination with no filters
     query = {
       sort: sortBy,
-      order: descending,
+      order: sortDesc,
       page,
-      limit: rowsPerPage,
+      limit: itemsPerPage,
+    };
+  } else {
+    query = {
+      page,
+      limit: itemsPerPage,
     };
   }
   return query;
@@ -109,10 +121,11 @@ export const handleError = (error, commit, reject) => {
   // Resets errors in store
   commit("loadingModule/showLoading", false, { root: true });
   commit("errorModule/error", null, { root: true });
+  console.log("sucedio un error....");
   console.log("el error: ", error);
   // Checks if unauthorized
   if (error.response.status === 401) {
-    store.dispatch("userLogout", { root: true });
+    store.dispatch("authModule/logout", { root: true });
   } else {
     // Any other error
     errMsg = error.response
@@ -127,24 +140,17 @@ export const handleError = (error, commit, reject) => {
   reject(error);
 };
 
-export const buildSuccess = (
-  msg,
-  commit,
-  resolve,
-  resolveParam = undefined
-) => {
+export const buildSuccess = (msg, commit) => {
   commit("loadingModule/showLoading", false, { root: true });
-  commit("successModule/showSuccess", msg, {
+  commit("successModule/success", null, {
     root: true,
   });
-  //   commit(types.SUCCESS, null, { root: true });
-  //   setTimeout(() => {
-  //     return msg
-  //       ? commit(types.SUCCESS, msg, { root: true })
-  //       : commit(types.SHOW_SUCCESS, false, { root: true });
-  //   }, 0);
-  //   commit(types.ERROR, null);
-  resolve(resolveParam);
+  setTimeout(() => {
+    return msg
+      ? commit("successModule/success", msg, { root: true })
+      : commit("successModule/showSuccess", false, { root: true });
+  }, 0);
+  commit("errorModule/error", null, { root: true });
 };
 
 // Checks if tokenExpiration in localstorage date is past, if so then trigger an update

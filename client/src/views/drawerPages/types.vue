@@ -3,9 +3,9 @@
     <v-row justify="center">
       <material-card
         width="700px"
-        icon="mdi-format-list-bulleted"
+        icon="mdi-cellphone-dock"
         color="primary"
-        title="Tipo de producto"
+        title="tipo de producto"
         text="Tabla resumen de tipos de productos"
       >
         <v-data-table
@@ -17,12 +17,12 @@
           sort-by="calories"
           @page-count="pageCount = $event"
           :page.sync="page"
-          :items-per-page="itemsPerPage"
+          :items-per-page="$store.state.itemsPerPage"
         >
           <template v-slot:top>
             <v-container>
               <span class="font-weight-bold">Filtrar por nombre: {{search}}</span>
-              <v-row align="center">
+              <v-row>
                 <v-col cols="12" sm="6">
                   <v-text-field
                     dense
@@ -37,48 +37,62 @@
                 <v-col cols="12" sm="6">
                   <v-dialog v-model="dialog" max-width="500px">
                     <template v-slot:activator="{ on }">
-                      <v-btn color="secondary" dark class="mb-2" v-on="on">Agregar Tipo</v-btn>
+                      <v-btn color="primary" dark class="mb-2" v-on="on">Agregar tipo</v-btn>
                     </template>
                     <v-card>
                       <v-card-title>
+                        <v-icon color="primary" class="mr-1">mdi-update</v-icon>
                         <span class="headline">{{ formTitle }}</span>
                       </v-card-title>
                       <v-divider></v-divider>
-                      <v-container class="pa-5">
-                        <v-alert
-                          text
-                          type="error"
-                          :value="validateError"
-                        >Es necesario colocar el nombre del tipo</v-alert>
-                        <v-row dense>
-                          <v-col cols="12" sm="12" md="12">
-                            <span class="font-weight-bold">Nombre</span>
-                            <v-text-field
-                              dense
+                      <ValidationObserver ref="obs" v-slot="{ passes }">
+                        <v-container class="pa-5">
+                          <v-alert
+                            text
+                            type="error"
+                            :value="validateError"
+                          >Es necesario colocar el nombre del tipo</v-alert>
+                          <v-row dense>
+                            <v-col cols="12" sm="12" md="12">
+                              <p class="body-1 font-weight-bold">Nombre</p>
+                              <VTextFieldWithValidation
+                                rules="required"
+                                v-model="editedItem.name"
+                                label="Nombre del tipo"
+                              />
+                            </v-col>
+                            <v-col cols="12" sm="12">
+                              <span class="font-weight-bold">Descripción</span>
+                              <v-textarea
+                                hide-details
+                                placeholder="Ingresa una descripción"
+                                outlined
+                                v-model="editedItem.description"
+                              ></v-textarea>
+                            </v-col>
+                            <!-- <v-col cols="12" sm="12" md="12">
+                            <span class="font-weight-bold">Estado</span>
+                            <v-select
                               hide-details
-                              clearable
-                              class
+                              v-model="editedItem.status"
+                              :items="[{name:'Activo',value:true},{name:'Inactivo',value:false}]"
+                              item-text="name"
+                              item-value="value"
                               outlined
-                              v-model="editedItem.name"
-                              placeholder="Nombre del tipo de producto"
-                            ></v-text-field>
-                          </v-col>
-                          <v-col cols="12" sm="12">
-                            <span class="font-weight-bold">Descripción</span>
-                            <v-textarea
-                              hide-details
-                              placeholder="Ingresa una descripción"
-                              outlined
-                              v-model="editedItem.description"
-                            ></v-textarea>
-                          </v-col>
-                        </v-row>
-                      </v-container>
-                      <v-card-actions>
-                        <div class="flex-grow-1"></div>
-                        <v-btn outlined color="error" text @click="close">Cancelar</v-btn>
-                        <v-btn :loading="loadingButton" color="success" @click="save">Guardar</v-btn>
-                      </v-card-actions>
+                            ></v-select>
+                            </v-col>-->
+                          </v-row>
+                        </v-container>
+                        <v-card-actions rd-actions>
+                          <div class="flex-grow-1"></div>
+                          <v-btn outlined color="error" text @click="close">Cancelar</v-btn>
+                          <v-btn
+                            :loading="loadingButton"
+                            color="success"
+                            @click="passes(save)"
+                          >Guardar</v-btn>
+                        </v-card-actions>
+                      </ValidationObserver>
                     </v-card>
                   </v-dialog>
                 </v-col>
@@ -86,13 +100,13 @@
             </v-container>
           </template>
           <template v-slot:item.action="{ item }">
-            <v-btn class="mr-3" small color="success" @click="editItem(item)">Editar</v-btn>
+            <v-btn class="mr-3" small color="secondary" @click="editItem(item)">Editar</v-btn>
             <v-btn small color="error" @click="deleteItem(item)">Eliminar</v-btn>
           </template>
-          <template v-slot:item.createdAt="{ item }">{{item.createdAt | formatDate}}</template>
           <template v-slot:no-data>
             <v-alert type="error" :value="true">Aún no cuentas con tipos de productos</v-alert>
           </template>
+          <template v-slot:item.createdAt="{ item }">{{item.createdAt | formatDate}}</template>
           <template v-slot:item.status="{item}">
             <v-chip v-if="item.status" color="success">Activo</v-chip>
             <v-chip v-else color="error">Inactivo</v-chip>
@@ -100,8 +114,8 @@
         </v-data-table>
         <v-col cols="12" sm="12">
           <span>
-            <strong>Total de tipos:</strong>
-            {{types.length}}
+            <strong>Mostrando:</strong>
+            {{$store.state.itemsPerPage>types.length?types.length:$store.state.itemsPerPage}} de {{types.length}} registros
           </span>
         </v-col>
         <div class="text-center pt-2">
@@ -113,20 +127,21 @@
 </template>
 
 <script>
-import { format} from "date-fns";
+import { format } from "date-fns";
+import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
 import TypeProduct from "../../classes/TypeProduct";
-import { customCopyObject } from "../../tools/customCopyObject";
-import { customHttpRequest } from "../../tools/customHttpRequest";
 export default {
+  components: {
+    VTextFieldWithValidation,
+  },
   filters: {
-  formatDate: function(value) {
+    formatDate: function (value) {
       return format(new Date(value), "dd/MM/yyyy");
-    }
+    },
   },
   data: () => ({
     page: 1,
     pageCount: 0,
-    itemsPerPage: 10,
     loadingButton: false,
     validateError: false,
     search: "",
@@ -137,58 +152,40 @@ export default {
         align: "left",
         sortable: false,
         value: "name",
-        class: "header-styles"
       },
-      // {
-      //   text: "Descripción",
-      //   align: "left",
-      //   width: "40%",
-      //   sortable: false,
-      //   value: "description",
-      //   filterable: false
-      // },
       {
         text: "Agregado",
         align: "left",
         sortable: true,
-        value: "createdAt"
+        value: "createdAt",
       },
-      // { text: "Estado", value: "status" },
-      { text: "Acciones", value: "action", sortable: false }
+      { text: "Acciones", value: "action", sortable: false },
     ],
     types: [],
     editedIndex: -1,
-    editedItem: TypeProduct,
-    defaultItem: customCopyObject(TypeProduct)
+    editedItem: TypeProduct(),
+    defaultItem: TypeProduct(),
   }),
 
   computed: {
     formTitle() {
-      return this.editedIndex === -1 ? "Nuevo Tipo" : "Editar Tipo";
-    }
+      return this.editedIndex === -1 ? "Nuevo tipo" : "Editar tipo";
+    },
   },
 
   watch: {
     dialog(val) {
       val || this.close();
-    }
+    },
   },
 
-  created() {
+  mounted() {
     this.initialize();
   },
 
   methods: {
     initialize() {
-      this.types = this.$store.state.types;
-    },
-    validateForm() {
-      if (!this.editedItem.name) {
-        this.validateError = true;
-        return false;
-      }
-      this.validateError = false;
-      return true;
+      this.types = this.$deepCopy(this.$store.state.typesModule.types);
     },
     editItem(item) {
       this.editedIndex = this.types.indexOf(item);
@@ -196,11 +193,11 @@ export default {
       this.dialog = true;
     },
 
-    deleteItem(item) {
+    async deleteItem(item) {
       const index = this.types.indexOf(item);
-      let typeId = this.types[index]._id;
-      if (confirm("¿Seguro que deseas eliminar este elemento?")) {
-        customHttpRequest("delete", "/api/types/delete/" + typeId);
+      let itemId = this.types[index]._id;
+      if (await this.$confirm("¿Realmente deseas eliminar este registro?")) {
+        await this.$store.dispatch("typesModule/delete", itemId);
         this.types.splice(index, 1);
       }
     },
@@ -213,44 +210,35 @@ export default {
       }, 300);
     },
 
-    save() {
-      if (!this.validateForm()) return false;
+    async save() {
+      this.loadingButton = true;
       if (this.editedIndex > -1) {
-        let typeId = this.types[this.editedIndex]._id;
-        //update type
-        this.loadingButton = true;
-        customHttpRequest(
-          "put",
-          "/api/types/update/" + typeId,
-          this.editedItem,
-          (err) => {
-            if (err) {
-              return (this.loadingButton = false);
-            }
-            Object.assign(this.types[this.editedIndex], this.editedItem);
-            this.loadingButton = false;
-            this.close();
-          }
-        );
+        let itemId = this.types[this.editedIndex]._id;
+        try {
+          await this.$store.dispatch("typesModule/update", {
+            id: itemId,
+            data: this.editedItem,
+          });
+          Object.assign(this.types[this.editedIndex], this.editedItem);
+          this.close();
+        } finally {
+          this.loadingButton = false;
+        }
       } else {
-        //create type
-        this.loadingButton = true;
-        customHttpRequest(
-          "post",
-          "/api/types/create",
-          this.editedItem,
-          (err, callback) => {
-            if (err) {
-              return (this.loadingButton = false);
-            }
-            this.types.push(callback);
-            this.loadingButton = false;
-            this.close();
-          }
-        );
+        //create item
+        try {
+          let newItem = await this.$store.dispatch(
+            "typesModule/create",
+            this.editedItem
+          );
+          this.types.push(newItem);
+          this.close();
+        } finally {
+          this.loadingButton = false;
+        }
       }
-    }
-  }
+    },
+  },
 };
 </script>
 

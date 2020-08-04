@@ -20,6 +20,7 @@ let typeSchema = new Schema(
     },
   },
   {
+    versionKey: false,
     timestamps: true,
   }
 );

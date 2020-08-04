@@ -50,15 +50,15 @@ const prepareToSendEmail = (user, subject, htmlMessage) => {
     subject,
     htmlMessage,
   };
-  if (process.env.NODE_ENV === "production") {
-    sendEmail(data, (messageSent) =>
-      messageSent
-        ? console.log(`Email SENT to: ${user.email}`)
-        : console.log(`Email FAILED to: ${user.email}`)
-    );
-  } else if (process.env.NODE_ENV === "development") {
-    console.log(data);
-  }
+  // if (process.env.NODE_ENV === "production") {
+  // sendEmail(data, (messageSent) =>
+  // messageSent
+  // ? console.log(`Email SENT to: ${user.email}`)
+  // : console.log(`Email FAILED to: ${user.email}`)
+  // );
+  // } else if (process.env.NODE_ENV === "development") {
+  console.log(data);
+  // }
 };
 
 module.exports = {

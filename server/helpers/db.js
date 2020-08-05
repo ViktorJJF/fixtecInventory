@@ -139,7 +139,6 @@ module.exports = {
     }
     // console.log("se paginara con esto: ", query, options);
     return new Promise((resolve, reject) => {
-      console.log("estas opciones se resolveran: ", options);
       model.paginate(query, options, (err, items) => {
         if (err) {
           reject(buildErrObject(422, err.message));

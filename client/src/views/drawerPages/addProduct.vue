@@ -101,7 +101,7 @@
           dense
           hide-details
           outlined
-          v-model="newProduct.price"
+          v-model="newProduct.purchasePrice"
           type="number"
         ></v-text-field>
       </v-col>
@@ -112,7 +112,7 @@
           dense
           hide-details
           outlined
-          v-model="newProduct.purchasePrice"
+          v-model="newProduct.price"
           type="number"
         ></v-text-field>
       </v-col>

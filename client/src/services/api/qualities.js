@@ -1,7 +1,7 @@
 import axios from "axios";
 export default {
-  list(query) {
-    return axios.get("/api/qualities",{params:query});
+  list(query = { sort: "name", order: "1" }) {
+    return axios.get("/api/qualities", { params: query });
   },
   update(id, payload) {
     return axios.put(`/api/qualities/${id}`, payload);

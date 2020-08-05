@@ -463,6 +463,7 @@ exports.login = async (req, res) => {
  * @param {Object} res - response object
  */
 exports.register = async (req, res) => {
+  console.log("se entro a registrar..");
   try {
     let body = req.body;
     const doesEmailExists = await emailer.emailExists(body.email);

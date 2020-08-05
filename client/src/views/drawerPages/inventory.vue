@@ -204,7 +204,7 @@
                           </template>
                         </v-select>
                       </v-col>
-                      <v-col cols="12" sm="4">
+                      <v-col cols="12" sm="3">
                         <span class="font-weight-bold">Precio de venta</span>
                         <v-text-field
                           prefix="S/."
@@ -215,7 +215,7 @@
                           type="number"
                         ></v-text-field>
                       </v-col>
-                      <v-col cols="12" sm="4">
+                      <v-col cols="12" sm="3">
                         <span class="font-weight-bold">Precio de Compra</span>
                         <v-text-field
                           prefix="S/."
@@ -226,7 +226,18 @@
                           type="number"
                         ></v-text-field>
                       </v-col>
-                      <v-col cols="12" sm="4">
+                      <v-col cols="12" sm="3">
+                        <span class="font-weight-bold">Stock</span>
+                        <v-text-field
+                          suffix="unidades"
+                          dense
+                          hide-details
+                          outlined
+                          v-model="editedItem.stock"
+                          type="number"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" sm="3">
                         <span class="font-weight-bold">Stock mínimo</span>
                         <v-text-field
                           suffix="unidades"

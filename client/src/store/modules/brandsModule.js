@@ -13,7 +13,7 @@ const module = {
           .list(query)
           .then((response) => {
             commit("list", response.data.payload);
-            resolve(response.data.payload.reverse());
+            resolve(response.data.payload);
           })
           .catch((error) => {
             handleError(error, commit, reject);

@@ -38,21 +38,21 @@ function renameKey(object, key, newKey) {
  * @param {Object} query - query object
  */
 const listInitOptions = async (req) => {
-  console.log("vino esto llama: ", req.query);
   return new Promise((resolve) => {
     const order = parseInt(req.query.order) || 1;
     const sort = req.query.sort || "createdAt";
     const sortBy = buildSort(sort, order);
+    console.log("este es el sortBy: ", sortBy);
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 99999;
     const options = {
+      order,
       sort,
       sort: sortBy,
       lean: true,
       page,
       limit,
     };
-    console.log("se resolveran estas opciones: ", options);
     resolve(options);
   });
 };
@@ -137,7 +137,9 @@ module.exports = {
         if (query.hasOwnProperty(key)) delete query[key];
       }
     }
+    // console.log("se paginara con esto: ", query, options);
     return new Promise((resolve, reject) => {
+      console.log("estas opciones se resolveran: ", options);
       model.paginate(query, options, (err, items) => {
         if (err) {
           reject(buildErrObject(422, err.message));

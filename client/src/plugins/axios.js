@@ -20,9 +20,7 @@ axios.interceptors.request.use(
       `${window.location.origin}/version.json`,
     ];
     if (urlsExcludedForBearerHeader.indexOf(config.url) === -1) {
-      config.headers.Authorization = `Bearer ${JSON.parse(
-        localStorage.getItem("token")
-      )}`;
+      config.headers.Authorization = `Bearer ${localStorage.getItem("token")}`;
     }
     return config;
   },

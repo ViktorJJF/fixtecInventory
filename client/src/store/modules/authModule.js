@@ -27,14 +27,8 @@ const actions = {
         .login(email, password)
         .then((response) => {
           if (response.status === 200) {
-            window.localStorage.setItem(
-              "user",
-              JSON.stringify(response.data.user)
-            );
-            window.localStorage.setItem(
-              "token",
-              JSON.stringify(response.data.token)
-            );
+            localStorage.setItem("user", JSON.stringify(response.data.user));
+            localStorage.setItem("token", response.data.token);
             // window.localStorage.setItem(
             //   "tokenExpiration",
             //   JSON.stringify(
@@ -85,9 +79,10 @@ const actions = {
     });
   },
   autoLogin({ commit }) {
+    console.log("vino autologin");
     const user = JSON.parse(localStorage.getItem("user"));
     commit("saveUser", user);
-    commit("saveToken", JSON.parse(localStorage.getItem("token")));
+    commit("saveToken", localStorage.getItem("token"));
     // commit(types.EMAIL_VERIFIED, user.verified);
   },
   logout({ commit }) {

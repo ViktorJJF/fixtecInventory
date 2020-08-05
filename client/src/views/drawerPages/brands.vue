@@ -5,8 +5,8 @@
         width="700px"
         icon="mdi-cellphone-dock"
         color="primary"
-        title="MARCA de producto"
-        text="Tabla resumen de MARCA de productos"
+        title="Marca de producto"
+        text="Tabla resumen de marcas de productos"
       >
         <v-data-table
           no-results-text="No se encontraron resultados"
@@ -29,7 +29,7 @@
                     hide-details
                     v-model="search"
                     append-icon="search"
-                    placeholder="Escribe el nombre del tipo"
+                    placeholder="Escribe el nombre de la marca"
                     single-line
                     outlined
                   ></v-text-field>
@@ -37,7 +37,7 @@
                 <v-col cols="12" sm="6">
                   <v-dialog v-model="dialog" max-width="500px">
                     <template v-slot:activator="{ on }">
-                      <v-btn color="primary" dark class="mb-2" v-on="on">Agregar tipo</v-btn>
+                      <v-btn color="primary" dark class="mb-2" v-on="on">Agregar Marca</v-btn>
                     </template>
                     <v-card>
                       <v-card-title>
@@ -51,14 +51,14 @@
                             text
                             type="error"
                             :value="validateError"
-                          >Es necesario colocar el nombre del tipo</v-alert>
+                          >Es necesario colocar el nombre de la marca</v-alert>
                           <v-row dense>
                             <v-col cols="12" sm="12" md="12">
                               <p class="body-1 font-weight-bold">Nombre</p>
                               <VTextFieldWithValidation
                                 rules="required"
                                 v-model="editedItem.name"
-                                label="Nombre del tipo"
+                                label="Nombre de la marca"
                               />
                             </v-col>
                             <v-col cols="12" sm="12">
@@ -104,7 +104,7 @@
             <v-btn small color="error" @click="deleteItem(item)">Eliminar</v-btn>
           </template>
           <template v-slot:no-data>
-            <v-alert type="error" :value="true">Aún no cuentas con tipos de productos</v-alert>
+            <v-alert type="error" :value="true">Aún no cuentas con marcas de productos</v-alert>
           </template>
           <template v-slot:item.createdAt="{ item }">{{item.createdAt | formatDate}}</template>
           <template v-slot:item.status="{item}">
@@ -148,7 +148,7 @@ export default {
     dialog: false,
     headers: [
       {
-        text: "Tipo",
+        text: "Marca",
         align: "left",
         sortable: false,
         value: "name",
@@ -169,7 +169,7 @@ export default {
 
   computed: {
     formTitle() {
-      return this.editedIndex === -1 ? "Nuevo tipo" : "Editar tipo";
+      return this.editedIndex === -1 ? "Nueva marca" : "Editar marca";
     },
   },
 

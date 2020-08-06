@@ -1,11 +1,11 @@
 const mongoose = require("mongoose");
 let Schema = mongoose.Schema;
 
-let typeSchema = new Schema(
+let toolTypesSchema = new Schema(
   {
     name: {
       type: String,
-      required: [true, "El nombre del tipo es requerido"],
+      required: [true, "El nombre del tipo de inversión es requerido"],
     },
     description: String,
     status: {
@@ -23,4 +23,4 @@ let typeSchema = new Schema(
   }
 );
 
-module.exports = mongoose.model("Types", typeSchema);
+module.exports = mongoose.model("ToolsTypes", toolTypesSchema);

@@ -35,7 +35,7 @@
                   ></v-text-field>
                 </v-col>
                 <v-col cols="12" sm="6">
-                  <v-dialog v-model="dialog" max-width="500px">
+                  <v-dialog v-model="dialog" max-width="600px">
                     <template v-slot:activator="{ on }">
                       <v-btn color="primary" dark class="mb-2" v-on="on">Agregar inversión</v-btn>
                     </template>
@@ -45,60 +45,79 @@
                         <span class="headline">{{ formTitle }}</span>
                       </v-card-title>
                       <v-divider></v-divider>
-                      <ValidationObserver ref="obs" v-slot="{ passes }">
-                        <v-container class="pa-5">
-                          <v-alert
-                            text
-                            type="error"
-                            :value="validateError"
-                          >Es necesario colocar el nombre del tipo</v-alert>
-                          <v-row dense>
-                            <v-col cols="12" sm="12" md="12">
-                              <p class="body-1 font-weight-bold">Nombre</p>
-                              <VTextFieldWithValidation
-                                rules="required"
-                                v-model="editedItem.name"
-                                label="Nombre del tipo"
-                              />
-                            </v-col>
-                            <v-col cols="12" sm="12">
-                              <span class="font-weight-bold">Descripción</span>
-                              <v-textarea
-                                hide-details
-                                placeholder="Ingresa una descripción"
-                                outlined
-                                v-model="editedItem.description"
-                              ></v-textarea>
-                            </v-col>
-                            <!-- <v-col cols="12" sm="12" md="12">
-                            <span class="font-weight-bold">Estado</span>
-                            <v-select
+                      <v-container fluid class="pa-5">
+                        <v-row>
+                          <v-col cols="12" sm="12">
+                            <span class="font-weight-bold">Nombre</span>
+                            <v-text-field
+                              dense
                               hide-details
-                              v-model="editedItem.status"
-                              :items="[{name:'Activo',value:true},{name:'Inactivo',value:false}]"
+                              outlined
+                              v-model="editedItem.name"
+                              placeholder="Nombre del producto"
+                            ></v-text-field>
+                          </v-col>
+                          <v-col cols="12" sm="4">
+                            <span class="font-weight-bold">Tipo</span>
+                            <v-select
+                              placeholder="Selecciona un Tipo"
                               item-text="name"
-                              item-value="value"
+                              item-valur="_id"
+                              dense
+                              hide-details
+                              v-model="editedItem.toolsTypeId"
+                              :items="toolsTypes"
+                              item-value="_id"
                               outlined
                             ></v-select>
-                            </v-col>-->
-                          </v-row>
-                        </v-container>
-                        <v-card-actions rd-actions>
-                          <div class="flex-grow-1"></div>
-                          <v-btn outlined color="error" text @click="close">Cancelar</v-btn>
-                          <v-btn
-                            :loading="loadingButton"
-                            color="success"
-                            @click="passes(save)"
-                          >Guardar</v-btn>
-                        </v-card-actions>
-                      </ValidationObserver>
+                          </v-col>
+                          <v-col cols="12" sm="4">
+                            <span class="font-weight-bold">Cantidad</span>
+                            <v-text-field
+                              suffix="unidades"
+                              dense
+                              hide-details
+                              outlined
+                              v-model="editedItem.stock"
+                              type="number"
+                            ></v-text-field>
+                          </v-col>
+                          <v-col cols="12" sm="4">
+                            <span class="font-weight-bold">Costo</span>
+                            <v-text-field
+                              prefix="S/."
+                              dense
+                              hide-details
+                              outlined
+                              v-model="editedItem.purchasePrice"
+                              type="number"
+                            ></v-text-field>
+                          </v-col>
+                          <v-col cols="12" sm="12">
+                            <span class="font-weight-bold">Descripción</span>
+                            <v-textarea
+                              hide-details
+                              placeholder="Ingresa una descripción"
+                              outlined
+                              v-model="editedItem.description"
+                            ></v-textarea>
+                          </v-col>
+                        </v-row>
+                      </v-container>
+                      <v-card-actions rd-actions>
+                        <div class="flex-grow-1"></div>
+                        <v-btn outlined color="error" text @click="close">Cancelar</v-btn>
+                        <v-btn :loading="loadingButton" color="success" @click="save">Guardar</v-btn>
+                      </v-card-actions>
                     </v-card>
                   </v-dialog>
                 </v-col>
               </v-row>
             </v-container>
           </template>
+          <template
+            v-slot:item.toolsTypeId="{ item }"
+          >{{item.toolsTypeId?item.toolsTypeId.name:'Sin tipo'}}</template>
           <template v-slot:item.action="{ item }">
             <v-btn class="mr-3" small color="secondary" @click="editItem(item)">Editar</v-btn>
             <v-btn small color="error" @click="deleteItem(item)">Eliminar</v-btn>
@@ -113,10 +132,10 @@
           </template>-->
         </v-data-table>
         <v-col cols="12" sm="12">
-          <!-- <span>
+          <span>
             <strong>Mostrando:</strong>
-            {{$store.state.itemsPerPage>types.length?types.length:$store.state.itemsPerPage}} de {{types.length}} registros
-          </span>-->
+            {{$store.state.itemsPerPage>tools.length?tools.length:$store.state.itemsPerPage}} de {{tools.length}} registros
+          </span>
         </v-col>
         <div class="text-center pt-2">
           <v-pagination v-model="page" :length="pageCount"></v-pagination>
@@ -128,12 +147,9 @@
 
 <script>
 import { format } from "date-fns";
-import VTextFieldWithValidation from "@/components/inputs/VTextFieldWithValidation";
-import TypeProduct from "../../classes/TypeProduct";
+import Tools from "../../classes/Tools";
 export default {
-  components: {
-    VTextFieldWithValidation,
-  },
+  components: {},
   filters: {
     formatDate: function (value) {
       return format(new Date(value), "dd/MM/yyyy");
@@ -157,7 +173,7 @@ export default {
         text: "Cantidad",
         align: "left",
         sortable: true,
-        value: "qty",
+        value: "stock",
       },
       {
         text: "Costo",
@@ -169,7 +185,7 @@ export default {
         text: "Tipo",
         align: "left",
         sortable: true,
-        value: "type",
+        value: "toolsTypeId",
       },
       {
         text: "Descripción",
@@ -179,35 +195,11 @@ export default {
       },
       { text: "Acciones", value: "action", sortable: false },
     ],
-    tools: [
-      {
-        _id: 1,
-        name: "Caja de desbloqueo",
-        qty: 10,
-        purchasePrice: "S/.750",
-        type: "Herramienta de trabajo",
-        description: "Me los vendieron muy caro",
-      },
-      {
-        _id: 2,
-        name: "Dr Fone",
-        qty: 1,
-        purchasePrice: "400",
-        type: "Software",
-        description: "Tengo que pagar la licencia el siguiente mes",
-      },
-      {
-        _id: 3,
-        name: "Dr Fone v2",
-        qty: 1,
-        purchasePrice: "400",
-        type: "Software",
-        description: "Tengo que pagar la licencia el siguiente mes",
-      },
-    ],
+    tools: [],
+    toolsTypes: [],
     editedIndex: -1,
-    editedItem: TypeProduct(),
-    defaultItem: TypeProduct(),
+    editedItem: Tools(),
+    defaultItem: Tools(),
   }),
 
   computed: {
@@ -222,26 +214,34 @@ export default {
     },
   },
 
-  mounted() {
-    // this.initialize();
+  async mounted() {
+    this.$store.dispatch("loadingModule/showLoading");
+    await this.initialize();
+    this.$store.dispatch("loadingModule/showLoading", false);
   },
 
   methods: {
-    initialize() {
-      this.types = this.$deepCopy(this.$store.state.typesModule.types);
+    async initialize() {
+      await this.$store.dispatch("toolsModule/list");
+      await this.$store.dispatch("toolsTypesModule/list");
+      this.tools = this.$deepCopy(this.$store.state.toolsModule.tools);
+      this.toolsTypes = this.$deepCopy(
+        this.$store.state.toolsTypesModule.toolsTypes
+      );
+      console.log("esto son tools types: ", this.toolsTypes);
     },
     editItem(item) {
-      this.editedIndex = this.types.indexOf(item);
+      this.editedIndex = this.tools.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.dialog = true;
     },
 
     async deleteItem(item) {
-      const index = this.types.indexOf(item);
-      let itemId = this.types[index]._id;
+      const index = this.tools.indexOf(item);
+      let itemId = this.tools[index]._id;
       if (await this.$confirm("¿Realmente deseas eliminar este registro?")) {
-        await this.$store.dispatch("typesModule/delete", itemId);
-        this.types.splice(index, 1);
+        await this.$store.dispatch("toolsModule/delete", itemId);
+        this.tools.splice(index, 1);
       }
     },
 
@@ -256,13 +256,13 @@ export default {
     async save() {
       this.loadingButton = true;
       if (this.editedIndex > -1) {
-        let itemId = this.types[this.editedIndex]._id;
+        let itemId = this.tools[this.editedIndex]._id;
         try {
-          await this.$store.dispatch("typesModule/update", {
+          await this.$store.dispatch("toolsModule/update", {
             id: itemId,
             data: this.editedItem,
           });
-          Object.assign(this.types[this.editedIndex], this.editedItem);
+          Object.assign(this.tools[this.editedIndex], this.editedItem);
           this.close();
         } finally {
           this.loadingButton = false;
@@ -271,10 +271,10 @@ export default {
         //create item
         try {
           let newItem = await this.$store.dispatch(
-            "typesModule/create",
+            "toolsModule/create",
             this.editedItem
           );
-          this.types.push(newItem);
+          this.tools.push(newItem);
           this.close();
         } finally {
           this.loadingButton = false;

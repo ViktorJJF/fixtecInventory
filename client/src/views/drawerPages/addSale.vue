@@ -79,6 +79,9 @@
             <thead>
               <tr>
                 <th class="text-left">
+                  <span>Tipo</span>
+                </th>
+                <th class="text-left">
                   <span>Producto</span>
                 </th>
                 <th class="text-left">
@@ -103,6 +106,7 @@
             </thead>
             <tbody>
               <tr v-for="(product,salesIndex) in sales" :key="'a'+salesIndex">
+                <td>{{product.productDetails.typeId?product.productDetails.typeId.name:'Sin tipo'}}</td>
                 <td>{{product.productDetails.name}}</td>
                 <td>
                   <v-text-field

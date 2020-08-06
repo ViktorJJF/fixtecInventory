@@ -161,6 +161,7 @@ export default {
       this.loadingButton = true;
       try {
         await this.$store.dispatch("productsModule/create", this.newProduct);
+        this.clear();
       } finally {
         this.loadingButton = false;
       }
@@ -174,6 +175,9 @@ export default {
           this.qualitiesLoading = false;
         }
       }
+    },
+    clear() {
+      this.newProduct = Product();
     },
   },
 };

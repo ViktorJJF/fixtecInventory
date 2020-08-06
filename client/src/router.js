@@ -42,6 +42,11 @@ let routes = [
         component: () => import("@/views/drawerPages/types.vue"),
       },
       {
+        path: "/tipos-de-inversiones",
+        name: "toolsTypes",
+        component: () => import("@/views/drawerPages/toolsTypes.vue"),
+      },
+      {
         path: "/colores",
         name: "colors",
         component: () => import("@/views/drawerPages/colors.vue"),

@@ -56,6 +56,7 @@ export default {
         { title: "Vista marcas", to: { name: "brand" } },
         { title: "Vista calidades", to: { name: "qualities" } },
         { title: "Vista colores", to: { name: "colors" } },
+        { title: "Vista tipos inversión", to: { name: "toolsTypes" } },
       ],
     };
   },

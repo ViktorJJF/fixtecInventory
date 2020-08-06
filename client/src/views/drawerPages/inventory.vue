@@ -205,17 +205,6 @@
                         </v-select>
                       </v-col>
                       <v-col cols="12" sm="3">
-                        <span class="font-weight-bold">Precio de venta</span>
-                        <v-text-field
-                          prefix="S/."
-                          dense
-                          hide-details
-                          outlined
-                          v-model="editedItem.price"
-                          type="number"
-                        ></v-text-field>
-                      </v-col>
-                      <v-col cols="12" sm="3">
                         <span class="font-weight-bold">Precio de Compra</span>
                         <v-text-field
                           prefix="S/."
@@ -223,6 +212,17 @@
                           hide-details
                           outlined
                           v-model="editedItem.purchasePrice"
+                          type="number"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" sm="3">
+                        <span class="font-weight-bold">Precio de venta</span>
+                        <v-text-field
+                          prefix="S/."
+                          dense
+                          hide-details
+                          outlined
+                          v-model="editedItem.price"
                           type="number"
                         ></v-text-field>
                       </v-col>

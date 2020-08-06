@@ -33,7 +33,13 @@
             <v-date-picker v-model="date" no-title @input="menu = false"></v-date-picker>
           </v-menu>
           <v-col class="d-flex" cols="12" sm="6">
-            <v-select :items="items" label="Selecciona el negocio" outlined dense></v-select>
+            <v-select
+              v-model="selectedCommerce"
+              :items="commerce"
+              label="Selecciona el negocio"
+              outlined
+              dense
+            ></v-select>
           </v-col>
           <v-spacer></v-spacer>
           <v-switch
@@ -84,9 +90,9 @@
                 <th class="text-left">
                   <span>Precio de venta</span>
                 </th>
-                <th class="text-left">
+                <!-- <th class="text-left">
                   <span>Descripción</span>
-                </th>
+                </th>-->
                 <th class="text-left">
                   <span>Subtotal</span>
                 </th>
@@ -130,14 +136,14 @@
                     type="number"
                   ></v-text-field>
                 </td>
-                <td>
+                <!-- <td>
                   <v-textarea
                     name="input-7-1"
                     label="Default style"
                     value="The Woodman set to work at once, and so sharp was his axe that the tree was soon chopped nearly through."
                     hint="Hint text"
                   ></v-textarea>
-                </td>
+                </td>-->
                 <td>S/.{{product.salePrice*product.qty}}</td>
                 <td>
                   <v-btn small color="error" @click="deleteSale(salesIndex)">Eliminar</v-btn>
@@ -159,7 +165,11 @@
             <span class="total">S/.{{getTotal}}</span>
           </v-card>
         </v-row>
-        <v-btn :loading="loadingButton" color="success" @click="saveSale(sales,date)">Terminar venta</v-btn>
+        <v-btn
+          :loading="loadingButton"
+          color="success"
+          @click="saveSale(sales,date,selectedCommerce)"
+        >Terminar venta</v-btn>
       </v-container>
     </template>
   </custom-card>
@@ -169,12 +179,14 @@
 export default {
   data() {
     return {
-      items: [
+      commerce: [
         "VENTA DE ACCESORIOS",
         "VENTA DE REPUESTOS",
         "SOFTWARE",
         "HARDWARE",
+        "CELULARES",
       ],
+      selectedCommerce: "",
       editPurchasePrice: false,
       historyMode: false,
       selectedProduct: null,
@@ -202,7 +214,7 @@ export default {
         });
       }
     },
-    async saveSale(products, date) {
+    async saveSale(products, date, commerce) {
       this.loadingButton = true;
       products = this.$deepCopy(products);
       //delete unnecesary info
@@ -235,6 +247,7 @@ export default {
         await this.$store.dispatch("salesModule/create", {
           products,
           date: saleDate,
+          commerce,
         });
         for (const product of products) {
           if (!product.history) {

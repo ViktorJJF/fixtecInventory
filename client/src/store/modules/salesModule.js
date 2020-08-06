@@ -109,6 +109,7 @@ const module = {
     },
     delete(state, id) {
       let indexToDelete = state.sales.findIndex((member) => member._id == id);
+      console.log("se eliminara este: ", id, indexToDelete);
       state.sales.splice(indexToDelete, 1);
     },
   },

@@ -112,12 +112,14 @@ export default {
       try {
         this.$store.dispatch("loadingModule/showLoading");
         currentPage = currentPage || 1;
-        this.purchases = await this.$store.dispatch(
-          "purchasesModule/listWithProducts",
-          buildPayloadPagination({
-            page: currentPage,
-            itemsPerPage: this.$store.state.itemsPerPage,
-          })
+        this.purchases = this.$deepCopy(
+          await this.$store.dispatch(
+            "purchasesModule/listWithProducts",
+            buildPayloadPagination({
+              page: currentPage,
+              itemsPerPage: this.$store.state.itemsPerPage,
+            })
+          )
         );
         //populate with products
         for (let i = 0; i < this.purchases.length; i++) {

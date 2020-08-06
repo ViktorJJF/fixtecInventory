@@ -34,7 +34,7 @@
             <li
               v-for="product in item.products"
               :key="product._id"
-            >{{product.productId.name}} ({{product.qty}} x S/.{{product.salePrice}})</li>
+            >{{product.productId?product.productId.name:'Producto eliminado'}} ({{product.qty}} x S/.{{product.salePrice}})</li>
           </ul>
         </template>
         <template v-slot:item.amount="{item}">

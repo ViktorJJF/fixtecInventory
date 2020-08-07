@@ -1,12 +1,10 @@
-import api from "@/services/api/purchases";
+import api from "@/services/api/services";
 import { buildSuccess, handleError } from "@/utils/utils.js";
 
 const module = {
   namespaced: true,
   state: {
-    purchases: [],
-    totalPurchases: 0,
-    totalPages: 0,
+    services: [],
   },
   actions: {
     list({ commit }, query) {
@@ -15,23 +13,6 @@ const module = {
           .list(query)
           .then((response) => {
             commit("list", response.data.payload);
-            commit("totalItems", response.data.totalDocs);
-            commit("totalPages", response.data.totalPages);
-            resolve(response.data.payload);
-          })
-          .catch((error) => {
-            handleError(error, commit, reject);
-          });
-      });
-    },
-    listWithProducts({ commit }, query) {
-      return new Promise((resolve, reject) => {
-        api
-          .listWithProducts(query)
-          .then((response) => {
-            commit("list", response.data.payload);
-            commit("totalItems", response.data.totalDocs);
-            commit("totalPages", response.data.totalPages);
             resolve(response.data.payload);
           })
           .catch((error) => {
@@ -45,7 +26,7 @@ const module = {
           .create(data)
           .then((res) => {
             commit("loadingModule/showLoading", true, { root: true });
-            buildSuccess("Compra creada con éxito", commit);
+            buildSuccess("Registro guardado con éxito", commit);
             commit("create", res.data.payload);
             resolve(res.data.payload);
           })
@@ -78,7 +59,7 @@ const module = {
           .delete(id)
           .then(() => {
             commit("loadingModule/showLoading", true, { root: true });
-            buildSuccess("Compra eliminada con éxito", commit);
+            buildSuccess("Registro eliminado con éxito", commit);
             commit("delete", id);
             resolve();
           })
@@ -90,33 +71,40 @@ const module = {
   },
   mutations: {
     list(state, data) {
-      state.purchases = data;
-    },
-    totalItems(state, data) {
-      state.totalPurchases = data;
-    },
-    totalPages(state, data) {
-      state.totalPages = data;
+      state.services = data;
     },
     create(state, data) {
-      state.purchases.push(data);
+      state.services.push(data);
     },
     update(state, { id, data }) {
-      let indexToUpdate = state.purchases.findIndex(
-        (member) => member._id == id
+      let indexToUpdate = state.services.findIndex(
+        (product) => product._id == id
       );
-      state.purchases.splice(indexToUpdate, 1, {
+      state.services.splice(indexToUpdate, 1, {
         ...data,
       });
     },
     delete(state, id) {
-      let indexToDelete = state.purchases.findIndex(
-        (member) => member._id == id
+      let indexToDelete = state.services.findIndex(
+        (product) => product._id == id
       );
-      state.purchases.splice(indexToDelete, 1);
+      state.services.splice(indexToDelete, 1);
+    },
+    updateStock(state, { productId, qty }) {
+      let index = state.services.findIndex(
+        (product) => product._id == productId
+      );
+      state.services[index].stock = state.services[index].stock + qty;
     },
   },
-  getters: {},
+  getters: {
+    productById(state) {
+      return (productId) => {
+        let result = state.services.find((product) => product._id == productId);
+        return result;
+      };
+    },
+  },
 };
 
 export default module;

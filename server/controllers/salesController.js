@@ -110,7 +110,6 @@ const create = async (req, res) => {
         throw utils.buildErrObject(422, "No cuentas con stock suficiente...");
     }
     //adding new sale id to products
-    console.log("estos son los productos: ", products);
     //create sale
     let createdSale = await db.createItem(req.body, model);
     for (const product of products) {

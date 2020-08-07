@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server/server.js",
     "dev": "nodemon server/server.js",
-    "seed": "node server/seeder/index.js"
+    "seed": "node seeder/index.js"
   },
   "author": "VictorJJF",
   "license": "ISC",

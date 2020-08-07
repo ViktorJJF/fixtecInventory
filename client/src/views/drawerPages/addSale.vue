@@ -7,32 +7,20 @@
             class="grow"
           >Aviso: Estás en el modo de ventas históricas, por lo que las ventas que registres no modificarán tu stock actual.</v-col>
         </v-alert>
-        <v-row align="center">
+
+        <v-row align="center" dense>
           <p class="body-1 font-weight-bold d-inline mx-3">Fecha:</p>
-          <v-menu
-            v-model="menu"
-            :close-on-content-click="false"
-            transition="scale-transition"
-            offset-y
-            max-width="290px"
-            min-width="290px"
-          >
-            <template v-slot:activator="{ on, attrs }">
-              <v-text-field
-                class="date-width"
-                v-model="date"
-                persistent-hint
-                prepend-inner-icon="event"
-                readonly
-                v-bind="attrs"
-                v-on="on"
-                outlined
-                dense
-              ></v-text-field>
-            </template>
-            <v-date-picker v-model="date" no-title @input="menu = false"></v-date-picker>
-          </v-menu>
-          <v-col class="d-flex" cols="12" sm="6">
+          <v-col cols="12" sm="12" md="3">
+            <v-text-field
+              outlined
+              dense
+              v-model="date"
+              prepend-icon="event"
+              type="date"
+              class="date-width"
+            ></v-text-field>
+          </v-col>
+          <v-col class="d-flex" cols="12" sm="4">
             <v-select
               v-model="selectedCommerce"
               :items="commerce"
@@ -43,6 +31,7 @@
           </v-col>
           <v-spacer></v-spacer>
           <v-switch
+            class="mb-5"
             v-model="historyMode"
             :label="'Modo histórico: '+(historyMode?'Activo':'Inactivo')"
           ></v-switch>
@@ -50,11 +39,26 @@
         <v-btn tile color="primary" class="my-3">
           <v-icon left>search</v-icon>Búsqueda
         </v-btn>
+        <!-- service search -->
         <v-autocomplete
+          v-if="selectedCommerce=='SOFTWARE' || selectedCommerce=='HARDWARE'"
+          @keyup.enter="addSale(selectedProduct)"
+          placeholder="Escribe el nombre del servicio"
+          @change="addSale(selectedProduct)"
+          class="search-field mr-3"
+          v-model="selectedProduct"
+          :items="services"
+          item-text="name"
+          item-value="_id"
+          :return-object="true"
+          dense
+          outlined
+        ></v-autocomplete>
+        <!-- products search -->
+        <v-autocomplete
+          v-else
           @keyup.enter="addSale(selectedProduct)"
           placeholder="Escribe el nombre del producto"
-          :loading="productsLoading"
-          @click="productsList"
           @change="addSale(selectedProduct)"
           class="search-field mr-3"
           v-model="selectedProduct"
@@ -64,17 +68,93 @@
           :return-object="true"
           dense
           outlined
-        >
-          <template v-slot:no-data>
-            <v-container fluid class="text-center" v-if="productsLoading">
-              <v-progress-circular indeterminate color="primary"></v-progress-circular>
-            </v-container>
-          </template>
-        </v-autocomplete>
+        ></v-autocomplete>
         <v-btn outlined color="primary" :to="{name:'salesHistory'}">
           <v-icon left>mdi-format-list-checks</v-icon>Ver historial
         </v-btn>
-        <v-simple-table>
+        <!-- service table -->
+        <v-simple-table v-if="selectedCommerce=='SOFTWARE' || selectedCommerce=='HARDWARE'">
+          <template v-slot:default>
+            <thead>
+              <tr>
+                <th class="text-left">
+                  <span>Tipo</span>
+                </th>
+                <th class="text-left">
+                  <span>Servicio</span>
+                </th>
+                <th class="text-left">
+                  <span>Costo</span>
+                </th>
+                <th class="text-left">
+                  <span>Precio de servicio</span>
+                </th>
+                <th class="text-left">
+                  <span>Datos del celular</span>
+                </th>
+                <th class="text-left">
+                  <span>Descripción</span>
+                </th>
+                <!-- <th class="text-left">
+                  <span>Descripción</span>
+                </th>-->
+                <th class="text-left">
+                  <span>Eliminar servicio</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(product,salesIndex) in sales" :key="'a'+salesIndex">
+                <td>{{product.productDetails.typeId?product.productDetails.typeId.name:'Sin tipo'}}</td>
+                <td>{{product.productDetails.name}}</td>
+                <td>
+                  <v-text-field
+                    class="inputs-width"
+                    prefix="S/."
+                    v-model="product.purchasePrice"
+                    type="number"
+                  ></v-text-field>
+                </td>
+                <td>
+                  <v-text-field
+                    class="inputs-width"
+                    prefix="S/."
+                    v-model="product.purchasePrice"
+                    type="number"
+                  ></v-text-field>
+                </td>
+                <td>
+                  <ul>
+                    <li>
+                      Modelo:
+                      <v-text-field
+                        class="inputs-width"
+                        v-model="product.purchasePrice"
+                        type="text"
+                      ></v-text-field>
+                    </li>
+                    <li>
+                      Marca:
+                      <v-text-field
+                        class="inputs-width"
+                        v-model="product.purchasePrice"
+                        type="text"
+                      ></v-text-field>
+                    </li>
+                  </ul>
+                </td>
+                <td>
+                  <v-textarea outlined placeholder="Descripción"></v-textarea>
+                </td>
+                <td>
+                  <v-btn small color="error" @click="deleteSale(salesIndex)">Eliminar</v-btn>
+                </td>
+              </tr>
+            </tbody>
+          </template>
+        </v-simple-table>
+        <!-- product table -->
+        <v-simple-table v-else>
           <template v-slot:default>
             <thead>
               <tr>
@@ -140,14 +220,6 @@
                     type="number"
                   ></v-text-field>
                 </td>
-                <!-- <td>
-                  <v-textarea
-                    name="input-7-1"
-                    label="Default style"
-                    value="The Woodman set to work at once, and so sharp was his axe that the tree was soon chopped nearly through."
-                    hint="Hint text"
-                  ></v-textarea>
-                </td>-->
                 <td>S/.{{product.salePrice*product.qty}}</td>
                 <td>
                   <v-btn small color="error" @click="deleteSale(salesIndex)">Eliminar</v-btn>
@@ -157,6 +229,14 @@
           </template>
         </v-simple-table>
         <v-alert
+          v-if="selectedCommerce=='SOFTWARE' || selectedCommerce=='HARDWARE'"
+          class="my-5"
+          v-show="sales.length==0"
+          type="warning"
+          text
+        >Aún no agregaste servicios a esta venta</v-alert>
+        <v-alert
+          v-else
           class="my-5"
           v-show="sales.length==0"
           type="warning"
@@ -199,6 +279,7 @@ export default {
       sales: [],
       total: 0,
       productsLoading: false,
+      servicesLoading: false,
       loadingButton: false,
     };
   },
@@ -235,22 +316,12 @@ export default {
           product.history = false;
         }
       }
-      //set hour
-      let currentDate = new Date();
-      let currentDay = currentDate.getDate();
-      let currentHours = currentDate.getHours();
-      let currentMinutes = currentDate.getMinutes();
-      let currentSeconds = currentDate.getSeconds();
-      let saleDate = new Date(date);
-      saleDate = new Date(saleDate.setDate(currentDay));
-      saleDate = new Date(saleDate.setHours(currentHours));
-      saleDate = new Date(saleDate.setMinutes(currentMinutes));
-      saleDate = new Date(saleDate.setSeconds(currentSeconds));
-      //create sale
       try {
+        date = new Date(date);
+        date = new Date(date.getTime() - date.getTimezoneOffset() * -60000);
         await this.$store.dispatch("salesModule/create", {
           products,
-          date: saleDate,
+          date: date,
           commerce,
         });
         for (const product of products) {
@@ -266,20 +337,13 @@ export default {
         this.loadingButton = false;
       }
     },
-    async productsList() {
-      if (this.products.length === 0) {
-        this.productsLoading = true;
-        try {
-          await this.$store.dispatch("productsModule/list");
-        } finally {
-          this.productsLoading = false;
-        }
-      }
-    },
   },
   computed: {
     products() {
       return this.$store.state.productsModule.products;
+    },
+    services() {
+      return this.$store.state.servicesModule.services;
     },
     getTotal() {
       return this.sales.reduce((a, b) => a + b.salePrice * b.qty, 0);

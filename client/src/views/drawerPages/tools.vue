@@ -13,7 +13,7 @@
           :search="search"
           hide-default-footer
           :headers="headers"
-          :items="tools"
+          :items="filteredTools"
           sort-by="calories"
           @page-count="pageCount = $event"
           :page.sync="page"
@@ -112,6 +112,25 @@
                     </v-card>
                   </v-dialog>
                 </v-col>
+                <v-col cols="12" sm="4">
+                  <span class="font-weight-bold">Filtrar por tipo:</span>
+                  <v-select
+                    clearable
+                    @click:clear="showAllTypes()"
+                    hide-details
+                    dense
+                    placeholder="Selecciona un tipo"
+                    v-model="selectedType"
+                    :items="toolsTypes"
+                    item-text="name"
+                    item-value="_id"
+                    outlined
+                  ></v-select>
+                </v-col>
+                <v-col cols="12" sm="4">
+                  <span class="font-weight-bold">Total de inversión:</span>
+                  <h1>S/{{totalInvestment}}</h1>
+                </v-col>
               </v-row>
             </v-container>
           </template>
@@ -158,6 +177,7 @@ export default {
   data: () => ({
     page: 1,
     pageCount: 0,
+    selectedType: null,
     loadingButton: false,
     validateError: false,
     search: "",
@@ -206,6 +226,19 @@ export default {
     formTitle() {
       return this.editedIndex === -1 ? "Nuevo tipo" : "Editar tipo";
     },
+    filteredTools() {
+      return this.selectedType
+        ? this.tools.filter((tool) =>
+            tool.toolsTypeId ? tool.toolsTypeId._id === this.selectedType : null
+          )
+        : this.tools;
+    },
+    totalInvestment() {
+      return this.filteredTools.reduce(
+        (a, b) => a + b.purchasePrice * b.stock,
+        0
+      );
+    },
   },
 
   watch: {
@@ -228,7 +261,6 @@ export default {
       this.toolsTypes = this.$deepCopy(
         this.$store.state.toolsTypesModule.toolsTypes
       );
-      console.log("esto son tools types: ", this.toolsTypes);
     },
     editItem(item) {
       this.editedIndex = this.tools.indexOf(item);
@@ -258,11 +290,11 @@ export default {
       if (this.editedIndex > -1) {
         let itemId = this.tools[this.editedIndex]._id;
         try {
-          await this.$store.dispatch("toolsModule/update", {
+          let updatedItem = await this.$store.dispatch("toolsModule/update", {
             id: itemId,
             data: this.editedItem,
           });
-          Object.assign(this.tools[this.editedIndex], this.editedItem);
+          Object.assign(this.tools[this.editedIndex], updatedItem);
           this.close();
         } finally {
           this.loadingButton = false;
@@ -280,6 +312,9 @@ export default {
           this.loadingButton = false;
         }
       }
+    },
+    showAllTypes() {
+      this.selectedType = null;
     },
   },
 };

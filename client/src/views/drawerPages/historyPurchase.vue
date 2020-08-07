@@ -38,7 +38,7 @@
           </ul>
         </template>
         <template v-slot:item.amount="{item}">
-          <span class="ganancia">S/.{{totalRevenue(item.products)}}</span>
+          <span class>S/.{{totalRevenue(item.products)}}</span>
         </template>
         <template v-slot:item.date="{item}">
           <div>
@@ -87,7 +87,7 @@ export default {
       { text: "Fecha de venta", value: "date" },
       { text: "Vendedor", value: "userId" },
       { text: "Productos vendidos", value: "products" },
-      { text: "Beneficio", value: "amount" },
+      { text: "Inversión", value: "amount" },
       { text: "Acciones", value: "actions" },
     ],
     purchases: [],

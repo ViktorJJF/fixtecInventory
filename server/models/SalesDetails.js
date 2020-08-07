@@ -15,6 +15,7 @@ let salesDetailSchema = new Schema(
       ref: "Products",
       required: [true, "El id del producto es requerido"],
     },
+    purchasePrice: { type: Number },
     salePrice: { type: Number, default: 0 },
     qty: { type: Number, default: 0 },
     history: {

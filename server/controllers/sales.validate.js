@@ -5,12 +5,12 @@ const { check } = require("express-validator");
  * Validates create new item request
  */
 exports.create = [
-  check("name")
+  check("commerce")
     .exists()
-    .withMessage("El nombre de la calidad es requerido")
+    .withMessage("Debes seleccionar el negocio")
     .not()
     .isEmpty()
-    .withMessage("El nombre de la calidad debe ser válido")
+    .withMessage("Debes seleccionar el negocio")
     .trim(),
   (req, res, next) => {
     validationResult(req, res, next);
@@ -21,18 +21,13 @@ exports.create = [
  * Validates update item request
  */
 exports.update = [
-  check("name")
+  check("commerce")
     .exists()
-    .withMessage("MISSING")
+    .withMessage("Debes seleccionar el negocio")
     .not()
     .isEmpty()
-    .withMessage("IS_EMPTY"),
-  check("id")
-    .exists()
-    .withMessage("MISSING")
-    .not()
-    .isEmpty()
-    .withMessage("IS_EMPTY"),
+    .withMessage("Debes seleccionar el negocio")
+    .trim(),
   (req, res, next) => {
     validationResult(req, res, next);
   },

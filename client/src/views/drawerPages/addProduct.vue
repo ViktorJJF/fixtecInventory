@@ -11,7 +11,7 @@
           placeholder="Nombre del producto"
         ></v-text-field>
       </v-col>
-      <v-col cols="12" sm="3">
+      <v-col cols="12" sm="4">
         <span class="font-weight-bold">Tipo</span>
         <v-select
           placeholder="Selecciona un Tipo"
@@ -25,7 +25,7 @@
           outlined
         ></v-select>
       </v-col>
-      <v-col cols="12" sm="3">
+      <v-col cols="12" sm="4">
         <span class="font-weight-bold">Marca</span>
         <v-select
           placeholder="Selecciona una Marca"
@@ -38,7 +38,7 @@
           outlined
         ></v-select>
       </v-col>
-      <v-col cols="12" sm="3">
+      <v-col cols="12" sm="4">
         <span class="font-weight-bold">Color</span>
         <v-select
           dense
@@ -51,7 +51,7 @@
           outlined
         ></v-select>
       </v-col>
-      <v-col cols="12" sm="3">
+      <v-col cols="12" sm="4">
         <span class="font-weight-bold">Calidad</span>
         <v-select
           dense
@@ -72,7 +72,20 @@
           </template>
         </v-select>
       </v-col>
-      <v-col cols="12" sm="3">
+      <v-col cols="12" sm="4">
+        <span class="font-weight-bold">Género</span>
+        <v-select
+          dense
+          hide-details
+          v-model="newProduct.gender"
+          placeholder="Selecciona un género"
+          item-text="name"
+          item-value="value"
+          :items="genders"
+          outlined
+        ></v-select>
+      </v-col>
+      <v-col cols="12" sm="4">
         <span class="font-weight-bold">Stock</span>
         <v-text-field
           suffix="unidades"
@@ -83,7 +96,7 @@
           type="number"
         ></v-text-field>
       </v-col>
-      <v-col cols="12" sm="3">
+      <v-col cols="12" sm="4">
         <span class="font-weight-bold">Stock Mínimo</span>
         <v-text-field
           suffix="unidades"
@@ -94,7 +107,7 @@
           type="number"
         ></v-text-field>
       </v-col>
-      <v-col cols="12" sm="3">
+      <v-col cols="12" sm="4">
         <span class="font-weight-bold">Precio Compra</span>
         <v-text-field
           prefix="S/."
@@ -105,7 +118,7 @@
           type="number"
         ></v-text-field>
       </v-col>
-      <v-col cols="12" sm="3">
+      <v-col cols="12" sm="4">
         <span class="font-weight-bold">Precio Venta</span>
         <v-text-field
           prefix="S/."
@@ -135,6 +148,10 @@ import Product from "../../classes/Product";
 export default {
   data() {
     return {
+      genders: [
+        { id: 1, name: "Masculino", value: "M" },
+        { id: 2, name: "Femenino", value: "F" },
+      ],
       qualitiesLoading: false,
       loadingButton: false,
       newProduct: Product(),

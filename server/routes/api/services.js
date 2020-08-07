@@ -1,5 +1,5 @@
-const controller = require("../../controllers/purchasesController");
-const validate = require("../../controllers/purchases.validate");
+const controller = require("../../controllers/servicesController");
+const validate = require("../../controllers/services.validate");
 const AuthController = require("../../controllers/authController");
 const express = require("express");
 const router = express.Router();
@@ -27,17 +27,6 @@ router.get(
 );
 
 /*
- * Get purchases with products
- */
-router.get(
-  "/with-products",
-  requireAuth,
-  AuthController.roleAuthorization(["ADMIN"]),
-  trimRequest.all,
-  controller.listWithProducts
-);
-
-/*
  * Create new item route
  */
 router.post(
@@ -57,7 +46,7 @@ router.get(
   requireAuth,
   AuthController.roleAuthorization(["ADMIN"]),
   trimRequest.all,
-  //   validate.listOne,
+  validate.listOne,
   controller.listOne
 );
 
@@ -81,7 +70,7 @@ router.delete(
   requireAuth,
   AuthController.roleAuthorization(["ADMIN"]),
   trimRequest.all,
-  //   validate.deletes,
+  validate.deletes,
   controller.deletes
 );
 

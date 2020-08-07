@@ -62,6 +62,11 @@ let routes = [
         component: () => import("@/views/drawerPages/inventory.vue"),
       },
       {
+        path: "/servicios",
+        name: "services",
+        component: () => import("@/views/drawerPages/services.vue"),
+      },
+      {
         path: "/ventas/crear",
         name: "addSale",
         component: () => import("@/views/drawerPages/addSale.vue"),

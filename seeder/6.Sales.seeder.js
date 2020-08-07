@@ -3,15 +3,15 @@ const json = [];
 
 module.exports = new Promise(async (resolve, reject) => {
   //GET FOREIGN IDS
-  const { selectRandomId } = require("../helpers/utils");
-  const User = require("../models/Users");
+  const { selectRandomId } = require("../server/helpers/utils");
+  const User = require("../server/models/Users");
   var users = await User.find();
   //GET DATA
-  for (let i = 0; i < 21; i++) {
+  for (let i = 0; i < 200; i++) {
     json.push({
-      name: faker.commerce.product(),
       userId: selectRandomId(users),
-      createdAt: faker.date.past(),
+      date: faker.date.past(),
+      createdAt: faker.date.recent(),
       updatedAt: faker.date.recent(),
     });
   }

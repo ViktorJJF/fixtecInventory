@@ -71,7 +71,7 @@ import { buildPayloadPagination } from "@/utils/utils.js";
 export default {
   filters: {
     formatDate: function (value) {
-      return format(new Date(value), "hh:m:s a dd/MM/yyyy");
+      return format(new Date(value), "dd/MM/yyyy");
     },
   },
   data: () => ({

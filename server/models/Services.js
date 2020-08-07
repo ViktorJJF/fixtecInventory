@@ -1,18 +1,17 @@
 const mongoose = require("mongoose");
 let Schema = mongoose.Schema;
 
-let toolSchema = new Schema(
+let servicesSchema = new Schema(
   {
     name: {
       type: String,
-      required: [true, "El nombre de la inversión es requerido"],
+      required: [true, "El nombre del servicio es requerido"],
     },
-    toolsTypeId: {
+    typeId: {
       type: Schema.Types.ObjectId,
-      ref: "ToolsTypes",
+      ref: "Types",
     },
-    stock: { type: Number, default: 0 },
-    purchasePrice: {
+    price: {
       type: Number,
       default: 0,
     },
@@ -35,19 +34,19 @@ let toolSchema = new Schema(
 //auto populate
 var autoPopulateLead = function (next) {
   console.log("se paso por products gaea");
-  this.populate("toolsTypeId");
+  this.populate("typeId");
   next();
 };
 var autoPopulateLead2 = function (doc, next) {
   doc
-    .populate("toolsTypeId")
+    .populate("typeId")
     .execPopulate()
     .then(function () {
       next();
     });
 };
 
-toolSchema.pre("findOne", autoPopulateLead).pre("find", autoPopulateLead);
-toolSchema.post("save", autoPopulateLead2);
+servicesSchema.pre("findOne", autoPopulateLead).pre("find", autoPopulateLead);
+servicesSchema.post("save", autoPopulateLead2);
 
-module.exports = mongoose.model("Tools", toolSchema);
+module.exports = mongoose.model("Services", servicesSchema);

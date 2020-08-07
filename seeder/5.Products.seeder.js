@@ -3,11 +3,11 @@ const json = [];
 
 module.exports = new Promise(async (resolve, reject) => {
   //GET FOREIGN IDS
-  const { selectRandomId } = require("../helpers/utils");
-  const User = require("../models/Users");
-  const Brands = require("../models/Brands");
-  const Colors = require("../models/Colors");
-  const Types = require("../models/Types");
+  const { selectRandomId } = require("../server/helpers/utils");
+  const User = require("../server/models/Users");
+  const Brands = require("../server/models/Brands");
+  const Colors = require("../server/models/Colors");
+  const Types = require("../server/models/Types");
   var users = await User.find();
   var brands = await Brands.find();
   var colors = await Colors.find();

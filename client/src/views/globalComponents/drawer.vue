@@ -85,6 +85,11 @@ export default {
           text: "Inventario",
           to: "listProduct",
         },
+        {
+          icon: "mdi-format-list-checks",
+          text: "Servicios",
+          to: "services",
+        },
 
         // {
         //   icon: "mdi-format-list-bulleted",

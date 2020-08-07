@@ -1,5 +1,5 @@
 const controller = require("../../controllers/salesController");
-// const validate = require("../../controllers/sales.validate");
+const validate = require("../../controllers/sales.validate");
 const AuthController = require("../../controllers/authController");
 const express = require("express");
 const router = express.Router();
@@ -45,7 +45,7 @@ router.post(
   requireAuth,
   AuthController.roleAuthorization(["ADMIN"]),
   trimRequest.all,
-  //   validate.create,
+  validate.create,
   controller.create
 );
 
@@ -69,7 +69,7 @@ router.put(
   requireAuth,
   AuthController.roleAuthorization(["ADMIN"]),
   trimRequest.all,
-  //   validate.update,
+  validate.update,
   controller.update
 );
 

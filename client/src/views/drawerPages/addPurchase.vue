@@ -1,5 +1,5 @@
 <template>
-  <custom-card title="Realizar Compra" icon="mdi-plus">
+  <custom-card title="Realizar compra" icon="mdi-plus">
     <template v-slot:content>
       <v-container>
         <v-alert prominent type="error" v-show="historyMode">
@@ -7,33 +7,31 @@
             class="grow"
           >Aviso: Estás en el modo de compras históricas, por lo que las compras que registres no modificarán tu stock actual.</v-col>
         </v-alert>
-        <v-row align="center">
+
+        <v-row align="center" dense>
           <p class="body-1 font-weight-bold d-inline mx-3">Fecha:</p>
-          <v-menu
-            v-model="menu"
-            :close-on-content-click="false"
-            transition="scale-transition"
-            offset-y
-            max-width="290px"
-            min-width="290px"
-          >
-            <template v-slot:activator="{ on, attrs }">
-              <v-text-field
-                class="date-width"
-                v-model="date"
-                persistent-hint
-                prepend-inner-icon="event"
-                readonly
-                v-bind="attrs"
-                v-on="on"
-                outlined
-                dense
-              ></v-text-field>
-            </template>
-            <v-date-picker v-model="date" no-title @input="menu = false"></v-date-picker>
-          </v-menu>
+          <v-col cols="12" sm="12" md="3">
+            <v-text-field
+              outlined
+              dense
+              v-model="date"
+              prepend-icon="event"
+              type="date"
+              class="date-width"
+            ></v-text-field>
+          </v-col>
+          <v-col class="d-flex" cols="12" sm="4">
+            <v-select
+              v-model="selectedCommerce"
+              :items="commerce"
+              label="Selecciona el negocio"
+              outlined
+              dense
+            ></v-select>
+          </v-col>
           <v-spacer></v-spacer>
           <v-switch
+            class="mb-5"
             v-model="historyMode"
             :label="'Modo histórico: '+(historyMode?'Activo':'Inactivo')"
           ></v-switch>
@@ -70,14 +68,20 @@
             <thead>
               <tr>
                 <th class="text-left">
+                  <span>Tipo</span>
+                </th>
+                <th class="text-left">
                   <span>Producto</span>
                 </th>
                 <th class="text-left">
                   <span>Cantidad</span>
                 </th>
                 <th class="text-left">
-                  <span>Precio</span>
+                  <span>Precio de compra</span>
                 </th>
+                <!-- <th class="text-left">
+                  <span>Descripción</span>
+                </th>-->
                 <th class="text-left">
                   <span>Subtotal</span>
                 </th>
@@ -87,7 +91,8 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(product,purchasesIndex) in purchases" :key="'b'+purchasesIndex">
+              <tr v-for="(product,purchasesIndex) in purchases" :key="'a'+purchasesIndex">
+                <td>{{product.productDetails.typeId?product.productDetails.typeId.name:'Sin tipo'}}</td>
                 <td>{{product.productDetails.name}}</td>
                 <td>
                   <v-text-field
@@ -105,6 +110,14 @@
                     type="number"
                   ></v-text-field>
                 </td>
+                <!-- <td>
+                  <v-textarea
+                    name="input-7-1"
+                    label="Default style"
+                    value="The Woodman set to work at once, and so sharp was his axe that the tree was soon chopped nearly through."
+                    hint="Hint text"
+                  ></v-textarea>
+                </td>-->
                 <td>S/.{{product.purchasePrice*product.qty}}</td>
                 <td>
                   <v-btn small color="error" @click="deletePurchase(purchasesIndex)">Eliminar</v-btn>
@@ -129,8 +142,8 @@
         <v-btn
           :loading="loadingButton"
           color="success"
-          @click="savePurchase(purchases,date)"
-        >Terminar Compra</v-btn>
+          @click="savePurchase(purchases,date,selectedCommerce)"
+        >Terminar compra</v-btn>
       </v-container>
     </template>
   </custom-card>
@@ -140,6 +153,14 @@
 export default {
   data() {
     return {
+      commerce: [
+        "VENTA DE ACCESORIOS",
+        "VENTA DE REPUESTOS",
+        "SOFTWARE",
+        "HARDWARE",
+        "CELULARES",
+      ],
+      selectedCommerce: "",
       historyMode: false,
       selectedProduct: null,
       date: new Date().toISOString().substr(0, 10),
@@ -160,12 +181,12 @@ export default {
           productDetails: product,
           productId: product._id,
           qty: 1,
-          purchasePrice: product.price,
+          purchasePrice: product.purchasePrice,
           history: this.historyMode,
         });
       }
     },
-    async savePurchase(products, date) {
+    async savePurchase(products, date, commerce) {
       this.loadingButton = true;
       products = this.$deepCopy(products);
       //delete unnecesary info
@@ -182,28 +203,19 @@ export default {
           product.history = false;
         }
       }
-      //set hour
-      let currentDate = new Date();
-      let currentDay = currentDate.getDate();
-      let currentHours = currentDate.getHours();
-      let currentMinutes = currentDate.getMinutes();
-      let currentSeconds = currentDate.getSeconds();
-      let purchaseDate = new Date(date);
-      purchaseDate = new Date(purchaseDate.setDate(currentDay));
-      purchaseDate = new Date(purchaseDate.setHours(currentHours));
-      purchaseDate = new Date(purchaseDate.setMinutes(currentMinutes));
-      purchaseDate = new Date(purchaseDate.setSeconds(currentSeconds));
-      //create purchase
       try {
+        date = new Date(date);
+        date = new Date(date.getTime() - date.getTimezoneOffset() * -60000);
         await this.$store.dispatch("purchasesModule/create", {
           products,
-          date: purchaseDate,
+          date: date,
+          commerce,
         });
         for (const product of products) {
           if (!product.history) {
             this.$store.commit("productsModule/updateStock", {
               productId: product.productId,
-              qty: parseInt(product.qty),
+              qty: +product.qty,
             });
           }
         }

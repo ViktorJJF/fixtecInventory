@@ -26,7 +26,7 @@ let productSchema = new Schema(
     gender: {
       type: String,
       enum: {
-        values: ["H", "M"],
+        values: ["M", "F"],
         message: "{VALUE} no es un género válido",
       },
     },

@@ -12,15 +12,7 @@
           <v-form>
             <v-container class="pa-5">
               <v-row dense>
-                <v-col cols="12" sm="4">
-                  <v-container fluid>
-                    <b class="center">
-                      {{ user.first_name }}
-                      {{ user.last_name }}
-                    </b>
-                  </v-container>
-                </v-col>
-                <v-col cols="12" sm="8">
+                <v-col cols="12" sm="12">
                   <v-container fluid>
                     <h3>Detalles del usuario</h3>
                     <v-row dense>

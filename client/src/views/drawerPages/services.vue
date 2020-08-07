@@ -13,12 +13,12 @@
           <v-tabs-slider></v-tabs-slider>
 
           <v-tab href="#tab-1">
-            Listado de productos
+            Listado de serviceos
             <v-icon>mdi-format-list-checks</v-icon>
           </v-tab>
 
           <v-tab href="#tab-2">
-            Agregar producto (modelo)
+            Agregar servicio
             <v-icon>mdi-plus-circle-outline</v-icon>
           </v-tab>
         </v-tabs>
@@ -31,7 +31,7 @@
                 :search="search"
                 hide-default-footer
                 :headers="headers"
-                :items="filteredProducts"
+                :items="filteredServices"
                 @page-count="pageCount = $event"
                 :page.sync="page"
                 :items-per-page="$store.state.itemsPerPage"
@@ -46,7 +46,7 @@
                           hide-details
                           v-model="search"
                           append-icon="search"
-                          placeholder="Escribe el nombre del producto"
+                          placeholder="Escribe el nombre del servicio"
                           single-line
                           outlined
                         ></v-text-field>
@@ -66,21 +66,6 @@
                           outlined
                         ></v-select>
                       </v-col>
-                      <v-col cols="12" sm="4">
-                        <span class="font-weight-bold">Filtrar por marca:</span>
-                        <v-select
-                          clearable
-                          @click:clear="showAllBrands()"
-                          hide-details
-                          dense
-                          placeholder="Selecciona una marca"
-                          v-model="selectedBrand"
-                          :items="brands"
-                          item-text="name"
-                          item-value="_id"
-                          outlined
-                        ></v-select>
-                      </v-col>
                     </v-row>
                   </v-container>
 
@@ -90,33 +75,9 @@
                   <v-btn class="mr-3 mb-2" small color="secondary" @click="editItem(item)">Editar</v-btn>
                   <v-btn class="mb-2" small color="error" @click="deleteItem(item)">Eliminar</v-btn>
                 </template>
-                <template v-slot:item.stock="{ item }">
-                  {{item.stock}}
-                  <v-icon
-                    color="green"
-                    v-show="item.stock>=item.minStock"
-                  >mdi-checkbox-marked-circle</v-icon>
-                  <v-tooltip bottom>
-                    <template v-slot:activator="{ on }">
-                      <v-icon
-                        v-on="on"
-                        color="error"
-                        v-show="item.stock<item.minStock"
-                      >mdi-alert-circle</v-icon>
-                    </template>
-                    <span>Stock por agotarse</span>
-                  </v-tooltip>
-                </template>
                 <template v-slot:item.createdAt="{ item }">{{item.createdAt | formatDate}}</template>
-                <template v-slot:item.purchasePrice="{ item }">S/.{{item.purchasePrice}}</template>
+                <template v-slot:item.typeId="{ item }">S/.{{item.typeId.name}}</template>
                 <template v-slot:item.price="{ item }">S/.{{item.price}}</template>
-                <template
-                  v-slot:item.brandId="{ item }"
-                >{{item.brandId?item.brandId.name:"Sin marca"}}</template>
-                <template v-slot:item.typeId="{ item }">{{item.typeId?item.typeId.name:"Sin tipo"}}</template>
-                <template
-                  v-slot:item.colorId="{ item }"
-                >{{item.colorId?item.colorId.name:"Sin color"}}</template>
                 <template v-slot:no-data>
                   <v-alert type="error" :value="true">No se encontraron datos</v-alert>
                 </template>
@@ -147,7 +108,7 @@
                           placeholder="Nombre del modelo"
                         ></v-text-field>
                       </v-col>
-                      <v-col cols="12" sm="4">
+                      <v-col cols="12" sm="6">
                         <span class="font-weight-bold">Tipo</span>
                         <v-select
                           dense
@@ -159,105 +120,14 @@
                           outlined
                         ></v-select>
                       </v-col>
-                      <v-col cols="12" sm="4">
-                        <span class="font-weight-bold">Marca</span>
-                        <v-select
-                          dense
-                          hide-details
-                          v-model="editedItem.brandId"
-                          :items="brands"
-                          item-text="name"
-                          item-value="_id"
-                          outlined
-                        ></v-select>
-                      </v-col>
-                      <v-col cols="12" sm="4">
-                        <span class="font-weight-bold">Color</span>
-                        <v-select
-                          dense
-                          hide-details
-                          v-model="editedItem.colorId"
-                          :items="colors"
-                          item-text="name"
-                          item-value="_id"
-                          outlined
-                        ></v-select>
-                      </v-col>
-                      <v-col cols="12" sm="4">
-                        <span class="font-weight-bold">Calidad</span>
-                        <v-select
-                          dense
-                          hide-details
-                          v-model="editedItem.qualityId"
-                          placeholder="Selecciona una calidad"
-                          item-text="name"
-                          item-value="_id"
-                          :items="qualities"
-                          :loading="qualitiesLoading"
-                          @click="getQualities"
-                          outlined
-                        >
-                          <template v-slot:no-data>
-                            <v-container fluid class="text-center" v-if="qualitiesLoading">
-                              <v-progress-circular indeterminate color="primary"></v-progress-circular>
-                            </v-container>
-                          </template>
-                        </v-select>
-                      </v-col>
-                      <v-col cols="12" sm="4">
-                        <span class="font-weight-bold">Género</span>
-                        <v-select
-                          dense
-                          hide-details
-                          v-model="editedItem.gender"
-                          placeholder="Selecciona un género"
-                          item-text="name"
-                          item-value="value"
-                          :items="genders"
-                          outlined
-                        ></v-select>
-                      </v-col>
-                      <v-col cols="12" sm="6">
-                        <span class="font-weight-bold">Precio de Compra</span>
-                        <v-text-field
-                          prefix="S/."
-                          dense
-                          hide-details
-                          outlined
-                          v-model="editedItem.purchasePrice"
-                          type="number"
-                        ></v-text-field>
-                      </v-col>
-                      <v-col cols="12" sm="6">
-                        <span class="font-weight-bold">Precio de venta</span>
+                      <v-col cols="12" sm="3">
+                        <span class="font-weight-bold">Precio del servicio</span>
                         <v-text-field
                           prefix="S/."
                           dense
                           hide-details
                           outlined
                           v-model="editedItem.price"
-                          type="number"
-                        ></v-text-field>
-                      </v-col>
-                      <v-col cols="12" sm="6">
-                        <span class="font-weight-bold">Stock</span>
-                        <v-text-field
-                          suffix="unidades"
-                          dense
-                          hide-details
-                          outlined
-                          v-model="editedItem.stock"
-                          type="number"
-                        ></v-text-field>
-                      </v-col>
-                      <v-col cols="12" sm="6">
-                        <span class="font-weight-bold">Stock mínimo</span>
-                        <v-text-field
-                          suffix="unidades"
-                          dense
-                          hide-details
-                          outlined
-                          v-model="editedItem.minStock"
                           type="number"
                         ></v-text-field>
                       </v-col>
@@ -284,7 +154,7 @@
           </v-tab-item>
           <v-tab-item :value="'tab-' + 2">
             <v-card flat>
-              <add-product></add-product>
+              <add-service></add-service>
             </v-card>
           </v-tab-item>
         </v-tabs-items>
@@ -294,12 +164,12 @@
 </template>
 
 <script>
-import addProduct from "./addProduct";
+import addService from "./addService";
 import { format } from "date-fns";
-import Product from "../../classes/Product";
+import Service from "../../classes/Service";
 export default {
   components: {
-    addProduct,
+    addService,
   },
   filters: {
     formatDate: function (value) {
@@ -307,10 +177,6 @@ export default {
     },
   },
   data: () => ({
-    genders: [
-      { id: 1, name: "Masculino", value: "M" },
-      { id: 2, name: "Femenino", value: "F" },
-    ],
     page: 1,
     pageCount: 0,
     loadingButton: false,
@@ -324,11 +190,7 @@ export default {
     headers: [
       { text: "Nombre", value: "name" },
       { text: "Tipo", value: "typeId", filterable: false },
-      { text: "Marca", value: "brandId", filterable: false },
-      { text: "Color", value: "colorId", filterable: false },
-      { text: "Stock", value: "stock", filterable: false },
-      { text: "Precio de compra", value: "purchasePrice", filterable: false },
-      { text: "Precio de venta", value: "price", filterable: false },
+      { text: "Precio del servicio", value: "price", filterable: false },
       {
         text: "Agregado",
         align: "left",
@@ -337,44 +199,31 @@ export default {
       },
       { text: "Acciones", value: "action", sortable: false },
     ],
-    products: [],
+    services: [],
     editedIndex: -1,
-    editedItem: Product(),
-    defaultItem: Product(),
+    editedItem: Service(),
+    defaultItem: Service(),
   }),
 
   computed: {
     formTitle() {
-      return "Editar producto";
-    },
-    brands() {
-      return this.$store.state.brandsModule.brands;
+      return "Editar Servicio";
     },
     types() {
       return this.$store.state.typesModule.types;
     },
-    colors() {
-      return this.$store.state.colorsModule.colors;
-    },
-    qualities() {
-      return this.$store.state.qualitiesModule.qualities;
-    },
-    filteredProducts() {
+    filteredServices() {
       return this.selectedType || this.selectedBrand
-        ? this.products.filter(
-            (product) =>
+        ? this.services.filter(
+            (service) =>
               (this.selectedType
-                ? product.typeId
-                  ? product.typeId._id === this.selectedType
-                  : null
+                ? service.typeId._id === this.selectedType
                 : true) &&
               (this.selectedBrand
-                ? product.brandId
-                  ? product.brandId._id === this.selectedBrand
-                  : null
+                ? service.brandId._id === this.selectedBrand
                 : true)
           )
-        : this.products;
+        : this.services;
     },
   },
 
@@ -384,13 +233,13 @@ export default {
     },
   },
 
-  created() {
-    this.initialize();
+  async created() {
+    await this.initialize();
   },
 
   methods: {
-    initialize() {
-      this.products = this.$deepCopy(this.$store.state.productsModule.products);
+    async initialize() {
+      this.services = this.$deepCopy(this.$store.state.servicesModule.services);
     },
     showAllTypes() {
       this.selectedType = null;
@@ -399,17 +248,17 @@ export default {
       this.selectedBrand = null;
     },
     editItem(item) {
-      this.editedIndex = this.products.indexOf(item);
+      this.editedIndex = this.services.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.dialog = true;
     },
 
     async deleteItem(item) {
-      const index = this.products.indexOf(item);
-      let itemId = this.products[index]._id;
+      const index = this.services.indexOf(item);
+      let itemId = this.services[index]._id;
       if (await this.$confirm("¿Realmente deseas eliminar este registro?")) {
-        await this.$store.dispatch("productsModule/delete", itemId);
-        this.products.splice(index, 1);
+        await this.$store.dispatch("servicesModule/delete", itemId);
+        this.services.splice(index, 1);
       }
     },
 
@@ -432,16 +281,16 @@ export default {
       //update item
       this.loadingButton = true;
       if (this.editedIndex > -1) {
-        let itemId = this.products[this.editedIndex]._id;
+        let itemId = this.services[this.editedIndex]._id;
         try {
           let updatedItem = await this.$store.dispatch(
-            "productsModule/update",
+            "servicesModule/update",
             {
               id: itemId,
               data: this.editedItem,
             }
           );
-          Object.assign(this.products[this.editedIndex], updatedItem);
+          Object.assign(this.services[this.editedIndex], updatedItem);
           this.close();
         } finally {
           this.loadingButton = false;

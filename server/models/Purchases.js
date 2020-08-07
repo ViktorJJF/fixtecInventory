@@ -9,6 +9,22 @@ let purchaseSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Users",
     },
+    commerce: {
+      type: String,
+      required: [true, "El tipo negocio es requerido"],
+      default: "OTROS",
+      enum: {
+        values: [
+          "CELULARES",
+          "VENTA DE ACCESORIOS",
+          "VENTA DE REPUESTOS",
+          "SOFTWARE",
+          "HARDWARE",
+          "OTROS",
+        ],
+        message: "{VALUE} no es un rol válido",
+      },
+    },
     status: {
       type: Boolean,
       default: true,

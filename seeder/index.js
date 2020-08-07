@@ -1,18 +1,20 @@
 require("dotenv").config();
 const mongoose = require("mongoose");
-const initMongo = require("../config/mongo");
+const initMongo = require("../server/config/mongo");
 const fs = require("fs");
+console.log("el env: ", process.env);
 initMongo();
 
 const CLEANFIRST = true;
 
 async function beginSeed() {
   console.log("empezando seeder...");
-  const files = fs.readdirSync(".");
+  const files = fs.readdirSync("./seeder");
   for (const file of files) {
+    console.log("El file: ", file);
     if (file.includes(".seeder")) {
       let modelName = formatFileName(file);
-      let model = require("../models/" + modelName);
+      let model = require("../server/models/" + modelName);
       let data = require("./" + file);
       await seedCollection(model, await data);
     }

@@ -41,6 +41,7 @@ export default {
         this.$store.dispatch("typesModule/list"),
         this.$store.dispatch("colorsModule/list"),
         this.$store.dispatch("productsModule/list"),
+        this.$store.dispatch("servicesModule/list"),
       ]);
       //   //count orders
       //   await this.$store.dispatch("countOrders");

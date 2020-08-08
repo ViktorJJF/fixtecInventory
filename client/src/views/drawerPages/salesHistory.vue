@@ -42,7 +42,16 @@
         </template>
         <template v-slot:item.date="{item}">
           <div>
-            {{item.date | formatDate}}
+            <v-text-field
+              class="mt-4"
+              v-show="editMode && item._id==editedIndex"
+              outlined
+              dense
+              v-model="editedDate"
+              prepend-icon="event"
+              type="date"
+            ></v-text-field>
+            <span v-show="!editMode || item._id!=editedIndex">{{item.date | formatDate}}</span>
             <v-chip
               v-show="item.products[0]?item.products[0].history:false"
               color="info"
@@ -52,7 +61,21 @@
           </div>
         </template>
         <template v-slot:item.actions="{item}">
-          <v-btn small color="error" @click="deleteItem(item)">Eliminar</v-btn>
+          <v-btn
+            v-show="!editMode || item._id!=editedIndex"
+            class="mr-2 my-2"
+            small
+            color="info"
+            @click="editMode=true;editedIndex=item._id;editedDate=new Date(item.date).toISOString().substr(0, 10)"
+          >Editar</v-btn>
+          <v-btn
+            v-show="editMode && item._id==editedIndex"
+            class="mr-2 my-2"
+            small
+            color="success"
+            @click="saveSale(item);editMode=false;"
+          >Guardar</v-btn>
+          <v-btn class="mb-2 my-2" small color="error" @click="deleteItem(item)">Eliminar</v-btn>
         </template>
         <template v-slot:item.createdAt="{ item }">{{item.createdAt | formatDate}}</template>
       </v-data-table>
@@ -75,6 +98,9 @@ export default {
     },
   },
   data: () => ({
+    editedDate: null,
+    editedIndex: null,
+    editMode: false,
     page: 1,
     pageCount: 0,
     itemsPerPage: 10,
@@ -83,6 +109,7 @@ export default {
     pagination: {},
     search: "",
     dialog: false,
+    editedSale: { _id: null, date: null },
     headers: [
       { text: "Fecha de venta", value: "date" },
       { text: "Vendedor", value: "userId" },
@@ -136,9 +163,23 @@ export default {
       }
       this.isDataReady = true;
     },
+    async saveSale(sale) {
+      let date = new Date(this.editedDate);
+      date = new Date(date.getTime() - date.getTimezoneOffset() * -60000);
+      sale.date = date;
+      await this.$store.dispatch("salesModule/update", {
+        id: sale._id,
+        data: {
+          commerce: sale.commerce,
+          date: date,
+        },
+      });
+    },
     totalRevenue(salesDetail) {
       if (salesDetail)
-        return salesDetail.reduce((a, b) => a + b.salePrice * b.qty, 0);
+        return salesDetail
+          .reduce((a, b) => a + b.salePrice * b.qty, 0)
+          .toFixed(2);
       else return "S/.0";
     },
     async deleteItem(item) {

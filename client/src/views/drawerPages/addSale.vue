@@ -36,11 +36,33 @@
             :label="'Modo histórico: '+(historyMode?'Activo':'Inactivo')"
           ></v-switch>
         </v-row>
-        <v-btn tile color="primary" class="my-3">
-          <v-icon left>search</v-icon>Búsqueda
-        </v-btn>
+        <v-dialog v-model="dialog" width="1200">
+          <template v-slot:activator="{ on:dialog }">
+            <v-tooltip bottom>
+              <template v-slot:activator="{ on: tooltip }">
+                <v-btn v-on="{ ...tooltip, ...dialog }" tile color="primary" class="my-3 mr-3">
+                  <v-icon left>search</v-icon>Agregar producto
+                </v-btn>
+              </template>
+              <span>Inventario</span>
+            </v-tooltip>
+          </template>
+          <v-card>
+            <v-toolbar color="primary" dark>
+              <v-toolbar-title>Productos</v-toolbar-title>
+            </v-toolbar>
+            <v-container>
+              <products @add-product="addSale" :selectButton="true"></products>
+            </v-container>
+            <v-divider></v-divider>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="primary" text @click="dialog = false">De acuerdo</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
         <!-- service search -->
-        <v-autocomplete
+        <!-- <v-autocomplete
           v-if="selectedCommerce=='SOFTWARE' || selectedCommerce=='HARDWARE'"
           @keyup.enter="addSale(selectedProduct)"
           placeholder="Escribe el nombre del servicio"
@@ -53,9 +75,9 @@
           :return-object="true"
           dense
           outlined
-        ></v-autocomplete>
+        ></v-autocomplete>-->
         <!-- products search -->
-        <v-autocomplete
+        <!-- <v-autocomplete
           v-else
           @keyup.enter="addSale(selectedProduct)"
           placeholder="Escribe el nombre del producto"
@@ -68,7 +90,7 @@
           :return-object="true"
           dense
           outlined
-        ></v-autocomplete>
+        ></v-autocomplete>-->
         <v-btn outlined color="primary" :to="{name:'salesHistory'}">
           <v-icon left>mdi-format-list-checks</v-icon>Ver historial
         </v-btn>
@@ -165,6 +187,9 @@
                   <span>Producto</span>
                 </th>
                 <th class="text-left">
+                  <span>Marca</span>
+                </th>
+                <th class="text-left">
                   <span>Cantidad</span>
                 </th>
                 <th class="text-left">
@@ -188,6 +213,7 @@
               <tr v-for="(product,salesIndex) in sales" :key="'a'+salesIndex">
                 <td>{{product.productDetails.typeId?product.productDetails.typeId.name:'Sin tipo'}}</td>
                 <td>{{product.productDetails.name}}</td>
+                <td>{{product.productDetails.brandId?product.productDetails.brandId.name:'Sin Marca'}}</td>
                 <td>
                   <v-text-field
                     class="inputs-width"
@@ -220,7 +246,7 @@
                     type="number"
                   ></v-text-field>
                 </td>
-                <td>S/.{{product.salePrice*product.qty}}</td>
+                <td>S/.{{(product.salePrice*product.qty).toFixed(2)}}</td>
                 <td>
                   <v-btn small color="error" @click="deleteSale(salesIndex)">Eliminar</v-btn>
                 </td>
@@ -260,9 +286,14 @@
 </template>
 
 <script>
+import products from "@/views/drawerPages/products.vue";
 export default {
+  components: {
+    products,
+  },
   data() {
     return {
+      dialog: null,
       commerce: [
         "VENTA DE ACCESORIOS",
         "VENTA DE REPUESTOS",
@@ -297,6 +328,8 @@ export default {
           salePrice: product.price,
           history: this.historyMode,
         });
+        //close dialog
+        this.dialog = false;
       }
     },
     async saveSale(products, date, commerce) {
@@ -320,6 +353,7 @@ export default {
         date = new Date(date);
         date = new Date(date.getTime() - date.getTimezoneOffset() * -60000);
         await this.$store.dispatch("salesModule/create", {
+          history: this.historyMode,
           products,
           date: date,
           commerce,
@@ -346,7 +380,7 @@ export default {
       return this.$store.state.servicesModule.services;
     },
     getTotal() {
-      return this.sales.reduce((a, b) => a + b.salePrice * b.qty, 0);
+      return this.sales.reduce((a, b) => a + b.salePrice * b.qty, 0).toFixed(2);
     },
   },
 };

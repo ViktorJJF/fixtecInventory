@@ -25,6 +25,10 @@ let purchaseSchema = new Schema(
         message: "{VALUE} no es un rol válido",
       },
     },
+    history: {
+      type: Boolean,
+      default: false,
+    },
     status: {
       type: Boolean,
       default: true,

@@ -55,6 +55,7 @@ const listWithProducts = async (req, res) => {
           userId: "$users",
           createdAt: "$createdAt",
           products: "$productsByPurchase",
+          commerce: "$commerce",
         },
       },
     ]);

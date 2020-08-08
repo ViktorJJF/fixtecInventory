@@ -74,6 +74,7 @@ const listWithProducts = async (req, res) => {
           userId: "$users",
           createdAt: "$createdAt",
           products: "$productsBySale",
+          commerce: "$commerce",
         },
       },
     ]);

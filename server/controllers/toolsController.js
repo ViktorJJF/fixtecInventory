@@ -72,10 +72,10 @@ const listOne = async (req, res) => {
 const create = async (req, res) => {
   try {
     req.body.userId = req.user._id;
-    const doesItemExists = await itemExists(req.body);
-    if (!doesItemExists) {
-      res.status(200).json(await db.createItem(req.body, model));
-    }
+    // const doesItemExists = await itemExists(req.body);
+    // if (!doesItemExists) {
+    res.status(200).json(await db.createItem(req.body, model));
+    // }
   } catch (error) {
     utils.handleError(res, error);
   }
@@ -84,10 +84,10 @@ const update = async (req, res) => {
   try {
     req.body.userId = req.user._id;
     const id = await utils.isIDGood(req.params.id);
-    const doesItemExists = await itemExistsExcludingItself(id, req.body);
-    if (!doesItemExists) {
-      res.status(200).json(await db.updateItem(id, model, req.body));
-    }
+    // const doesItemExists = await itemExistsExcludingItself(id, req.body);
+    // if (!doesItemExists) {
+    res.status(200).json(await db.updateItem(id, model, req.body));
+    // }
   } catch (error) {
     utils.handleError(res, error);
   }

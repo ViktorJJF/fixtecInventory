@@ -1,6 +1,7 @@
 import api from "@/services/api/auth";
 // import apiUsers from "@/services/api/users";
 import { buildSuccess, handleError } from "@/utils/utils.js";
+import router from "@/router";
 
 const state = () => ({
   user: null,
@@ -89,6 +90,7 @@ const actions = {
     window.localStorage.removeItem("token");
     window.localStorage.removeItem("tokenExpiration");
     window.localStorage.removeItem("user");
+    router.push({ name: "login" });
     commit("logout");
   },
   // editUser({ commit }, { id, data }) {

@@ -78,7 +78,6 @@ export default {
       this.$store
         .dispatch("authModule/logout")
         .then(() => {
-          this.$router.push({ name: "login" });
         })
         .catch((err) => {
           console.log("algo salio mal en logout:", err);

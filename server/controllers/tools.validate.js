@@ -23,16 +23,11 @@ exports.create = [
 exports.update = [
   check("name")
     .exists()
-    .withMessage("MISSING")
+    .withMessage("El nombre del tipo de inversión es requerido")
     .not()
     .isEmpty()
-    .withMessage("IS_EMPTY"),
-  check("id")
-    .exists()
-    .withMessage("MISSING")
-    .not()
-    .isEmpty()
-    .withMessage("IS_EMPTY"),
+    .withMessage("El nombre del tipo de inversión debe ser válido")
+    .trim(),
   (req, res, next) => {
     validationResult(req, res, next);
   },

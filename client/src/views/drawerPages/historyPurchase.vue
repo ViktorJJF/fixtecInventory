@@ -42,7 +42,16 @@
         </template>
         <template v-slot:item.date="{item}">
           <div>
-            {{item.date | formatDate}}
+            <v-text-field
+              class="mt-4"
+              v-show="editMode && item._id==editedIndex"
+              outlined
+              dense
+              v-model="editedDate"
+              prepend-icon="event"
+              type="date"
+            ></v-text-field>
+            <span v-show="!editMode || item._id!=editedIndex">{{item.date | formatDate}}</span>
             <v-chip
               v-show="item.products[0]?item.products[0].history:false"
               color="info"
@@ -52,6 +61,20 @@
           </div>
         </template>
         <template v-slot:item.actions="{item}">
+          <v-btn
+            v-show="!editMode || item._id!=editedIndex"
+            class="mr-2 my-2"
+            small
+            color="info"
+            @click="editMode=true;editedIndex=item._id;editedDate=new Date(item.date).toISOString().substr(0, 10)"
+          >Editar</v-btn>
+          <v-btn
+            v-show="editMode && item._id==editedIndex"
+            class="mr-2 my-2"
+            small
+            color="success"
+            @click="savePurchase(item);editMode=false;"
+          >Guardar</v-btn>
           <v-btn small color="error" @click="deleteItem(item)">Eliminar</v-btn>
         </template>
         <template v-slot:item.createdAt="{ item }">{{item.createdAt | formatDate}}</template>
@@ -71,10 +94,13 @@ import { buildPayloadPagination } from "@/utils/utils.js";
 export default {
   filters: {
     formatDate: function (value) {
-      return format(new Date(value), "hh:m:s a dd/MM/yyyy");
+      return format(new Date(value), "dd/MM/yyyy");
     },
   },
   data: () => ({
+    editedDate: null,
+    editedIndex: null,
+    editMode: false,
     page: 1,
     pageCount: 0,
     itemsPerPage: 10,
@@ -136,9 +162,24 @@ export default {
       }
       this.isDataReady = true;
     },
+    async savePurchase(purchase) {
+      console.log("se guardara estO .", purchase);
+      let date = new Date(this.editedDate);
+      date = new Date(date.getTime() - date.getTimezoneOffset() * -60000);
+      purchase.date = date;
+      await this.$store.dispatch("purchasesModule/update", {
+        id: purchase._id,
+        data: {
+          commerce: purchase.commerce,
+          date: date,
+        },
+      });
+    },
     totalRevenue(purchasesDetail) {
       if (purchasesDetail)
-        return purchasesDetail.reduce((a, b) => a + b.purchasePrice * b.qty, 0);
+        return purchasesDetail
+          .reduce((a, b) => a + b.purchasePrice * b.qty, 0)
+          .toFixed(2);
       else return "S/.0";
     },
     async deleteItem(item) {

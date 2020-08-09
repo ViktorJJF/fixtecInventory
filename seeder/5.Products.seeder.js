@@ -18,7 +18,7 @@ module.exports = new Promise(async (resolve, reject) => {
     images.push({ path: faker.image.technics() });
   }
   //GET DATA
-  for (let i = 0; i < 100; i++) {
+  for (let i = 0; i < 200; i++) {
     json.push({
       name: faker.lorem.word(),
       typeId: selectRandomId(types),

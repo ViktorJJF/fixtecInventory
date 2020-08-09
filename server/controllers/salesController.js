@@ -35,6 +35,97 @@ const list = async (req, res) => {
   }
 };
 const listWithProducts = async (req, res) => {
+  // try {
+  //   // let filterProducts = {};
+  //   let limit = parseInt(req.query.limit) || 20;
+  //   let filter = {};
+  //   let options = {};
+  //   let page = req.query.page || 1;
+  //   //filter product
+  //   // if (req.query.product) {
+  //   //   filter["products.productId"] = ObjectId(req.query.product);
+  //   // }
+  //   //filter commerce
+  //   if (req.query.commerce) {
+  //     filter["commerce"] = req.query.commerce;
+  //   }
+  //   //filter date range
+  //   if (req.query.startDate || req.query.endDate) {
+  //     filter["date"] = {};
+  //     if (req.query.startDate)
+  //       filter.date["$gte"] = utils.convertToDate(req.query.startDate);
+  //     if (req.query.endDate)
+  //       filter.date["$lte"] = utils.convertToDate(req.query.endDate);
+  //   }
+  //   console.log("este es el filtro: ", filter);
+  //   //options
+  //   options["limit"] = limit;
+  //   options["skip"] = (parseInt(page) - 1) * parseInt(limit) || 0;
+  //   //aggregate
+  //   let aggregated = await model.aggregate([
+  //     { $match: filter },
+  //     { $skip: options.skip },
+  //     {
+  //       $facet: {
+  //         info: [
+  //           {
+  //             $count: "totalDocs",
+  //           },
+  //           {
+  //             $project: {
+  //               _id: "1",
+  //               totalDocs: "$totalDocs",
+  //               totalPages: {
+  //                 $ceil: { $divide: ["$totalDocs", limit] },
+  //               },
+  //               page: { $toInt: page },
+  //             },
+  //           },
+  //         ],
+  //         result: [
+  //           { $limit: options.limit },
+  //           {
+  //             $lookup: {
+  //               from: "salesdetails",
+  //               localField: "_id",
+  //               foreignField: "saleId",
+  //               as: "products",
+  //             },
+  //           },
+  //           {
+  //             $lookup: {
+  //               from: "users",
+  //               localField: "userId",
+  //               foreignField: "_id",
+  //               as: "userId",
+  //             },
+  //           },
+  //           { $unwind: "$userId" }, //array to object (like populate)
+  //           {
+  //             $match: {
+  //               "products.productId": ObjectId(req.query.product),
+  //             },
+  //           },
+  //         ],
+  //       },
+  //     },
+  //     { $unwind: "$info" },
+  //     {
+  //       $project: {
+  //         totalDocs: "$info.totalDocs",
+  //         payload: "$result",
+  //         totalPages: "$info.totalPages",
+  //         page: "$info.page",
+  //       },
+  //     },
+  //   ]);
+  //   res.status(200).json({ ok: true, ...aggregated[0] });
+  //   // res.status(200).json(await db.getAggregatedItems(req, model, aggregated));
+  // } catch (error) {
+  //   console.log("el error: ", error);
+  //   utils.handleError(res, error);
+  // }
+
   try {
     let filterProducts = {};
     let filterDate = {};

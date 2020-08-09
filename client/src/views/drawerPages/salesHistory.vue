@@ -263,6 +263,7 @@ export default {
             }),
           })
         );
+        console.log("llegaron estas ventas: ", this.sales);
         //populate with products
         for (let i = 0; i < this.sales.length; i++) {
           for (let j = 0; j < this.sales[i].products.length; j++) {

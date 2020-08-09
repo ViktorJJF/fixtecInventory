@@ -9,7 +9,7 @@ module.exports = new Promise(async (resolve, reject) => {
   let products = await Product.find();
   let sales = await Sale.find();
   // //GET DATA
-  for (let i = 0; i < 600; i++) {
+  for (let i = 0; i < 30000; i++) {
     json.push({
       saleId: selectRandomId(sales),
       productId: selectRandomId(products),

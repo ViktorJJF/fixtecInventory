@@ -32,7 +32,7 @@
             color="orange"
             icon="mdi-content-copy"
             title="Productos"
-            :value="$store.getters.getProducts.length"
+            :value="$store.state.productsModule.length"
             small-value="Unidades"
           />
         </v-col>
@@ -132,7 +132,7 @@
 </template>
 
 <script>
-import axios from "axios";
+// import axios from "axios";
 export default {
   data() {
     return {
@@ -249,23 +249,23 @@ export default {
   },
   methods: {
     async getInitialData() {
-      //count orders
-      await this.$store.dispatch("countOrders");
-      //count purchases
-      await this.$store.dispatch("countPurchases");
-      axios
-        .get("/api/orders/count-by-date")
-        .then((res) => {
-          let datas = res.data.payload;
-          datas.forEach((data) => {
-            this.dailySalesChart.data.series[0][parseInt(data._id)] =
-              data.count;
-          });
-          this.isDataReady = true;
-        })
-        .catch((err) => {
-          console.error(err);
-        });
+      // //count orders
+      // await this.$store.dispatch("countOrders");
+      // //count purchases
+      // await this.$store.dispatch("countPurchases");
+      // axios
+      //   .get("/api/orders/count-by-date")
+      //   .then((res) => {
+      //     let datas = res.data.payload;
+      //     datas.forEach((data) => {
+      //       this.dailySalesChart.data.series[0][parseInt(data._id)] =
+      //         data.count;
+      //     });
+      //     this.isDataReady = true;
+      //   })
+      //   .catch((err) => {
+      //     console.error(err);
+      //   });
     },
   },
   computed: {

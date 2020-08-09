@@ -2,6 +2,14 @@ const mongoose = require("mongoose");
 const requestIp = require("request-ip");
 const { validationResult } = require("express-validator");
 
+exports.convertToDate = (date) => {
+  let preFormated = new Date(date);
+  formatedDate = new Date(
+    preFormated.getTime() - preFormated.getTimezoneOffset() * -60000
+  );
+  return formatedDate;
+};
+
 exports.selectRandomId = (collection) => {
   return collection[this.Random(0, collection.length - 1)]._id;
 };

@@ -3,17 +3,12 @@ const SalesDetail = require("../models/SalesDetails.js");
 const Product = require("../models/Products.js");
 const utils = require("../helpers/utils");
 const db = require("../helpers/db");
+const { ObjectId } = require("mongodb");
 
 //Public functions
 const stockAvailable = async (productId, qty) => {
   try {
     let product = await Product.findOne({ _id: productId });
-    console.log(
-      "esta es la venta y lo que se desea agregar: ",
-      product.stock,
-      qty,
-      product.stock > qty
-    );
     return product.stock > qty;
   } catch (error) {
     throw error;
@@ -41,14 +36,29 @@ const list = async (req, res) => {
 };
 const listWithProducts = async (req, res) => {
   try {
-    // let startDate = new Date("2020", "4");
-    // let endDate = new Date("2021", "4");
+    let filterProducts = {};
+    let filterDate = {};
+    //filter product
+    if (req.query.product) {
+      filterProducts["products.productId"] = ObjectId(req.query.product);
+    }
+    //filter commerce
+    if (req.query.commerce) {
+      filterProducts["commerce"] = req.query.commerce;
+    }
+    //filter date range
+    if (req.query.startDate || req.query.endDate) {
+      filterDate["date"] = {};
+      if (req.query.startDate)
+        filterDate.date["$gte"] = utils.convertToDate(req.query.startDate);
+      if (req.query.endDate)
+        filterDate.date["$lte"] = utils.convertToDate(req.query.endDate);
+    }
+    //aggregate
     let aggregated = model.aggregate([
-      // {
-      //   $match: {
-      //     date: { $gte: startDate, $lt: endDate },
-      //   },
-      // },
+      {
+        $match: filterDate,
+      },
       {
         $lookup: {
           from: "salesdetails",
@@ -76,6 +86,9 @@ const listWithProducts = async (req, res) => {
           products: "$productsBySale",
           commerce: "$commerce",
         },
+      },
+      {
+        $match: filterProducts,
       },
     ]);
 

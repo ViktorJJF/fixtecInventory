@@ -47,6 +47,13 @@ Vue.use(VuetifyConfirm, {
   // buttonFalseColor: "yellow lighten3"
 });
 
+//mixins
+Vue.mixin({
+  computed: {
+    console: () => console,
+  },
+});
+
 new Vue({
   vuetify,
   router,

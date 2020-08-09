@@ -5,7 +5,7 @@ const module = {
   namespaced: true,
   state: {
     sales: [],
-    totalSales: 0,
+    total: 0,
     totalPages: 0,
   },
   actions: {
@@ -93,7 +93,7 @@ const module = {
       state.sales = data;
     },
     totalItems(state, data) {
-      state.totalSales = data;
+      state.total = data;
     },
     totalPages(state, data) {
       state.totalPages = data;

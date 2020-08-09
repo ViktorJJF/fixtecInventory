@@ -294,13 +294,6 @@ export default {
   data() {
     return {
       dialog: null,
-      commerce: [
-        "VENTA DE ACCESORIOS",
-        "VENTA DE REPUESTOS",
-        "SOFTWARE",
-        "HARDWARE",
-        "CELULARES",
-      ],
       selectedCommerce: "",
       editPurchasePrice: false,
       historyMode: false,
@@ -382,6 +375,9 @@ export default {
     getTotal() {
       return this.sales.reduce((a, b) => a + b.salePrice * b.qty, 0).toFixed(2);
     },
+    commerce() {
+      return this.$store.state.commerce;
+    },
   },
 };
 </script>
@@ -389,9 +385,6 @@ export default {
 <style lang="scss" scoped>
 .total {
   font-size: 24px;
-}
-.date-width {
-  max-width: 300px;
 }
 .search-field {
   display: inline-block;

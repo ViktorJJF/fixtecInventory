@@ -1,29 +1,134 @@
 <template>
   <custom-card title="Historial de ventas" icon="mdi-format-list-checks">
     <template v-slot:content>
-      <!-- <v-col cols="12" sm="12">
-        <p>
-          <strong>Total de ventas:</strong>
-          {{$store.getters.getTotalOrders}}
-        </p>
-      </v-col>-->
+      <v-row align="center" class="mb-3">
+        <v-col cols="12" sm="4">
+          <span class="body-1 font-weight-bold d-inline mx-3">Desde:</span>
+          <v-text-field
+            outlined
+            dense
+            v-model="filters.startDate"
+            prepend-icon="event"
+            type="date"
+            class="mr-3 mb-3"
+            hide-details
+            clearable
+          ></v-text-field>
+        </v-col>
+        <v-col cols="12" sm="4">
+          <span class="body-1 font-weight-bold d-inline mx-3">Hasta:</span>
+          <v-text-field
+            outlined
+            dense
+            v-model="filters.endDate"
+            prepend-icon="event"
+            type="date"
+            class="mr-3 mb-3"
+            hide-details
+            clearable
+          ></v-text-field>
+        </v-col>
+        <v-col cols="12" sm="4">
+          <span class="body-1 font-weight-bold d-inline mx-3">Negocio:</span>
+          <v-select
+            clearable
+            @click:clear="filters.commerce=null"
+            hide-details
+            dense
+            placeholder="Selecciona un negocio"
+            v-model="filters.commerce"
+            :items="commerce"
+            class="mr-3 mb-3"
+            outlined
+          ></v-select>
+        </v-col>
+        <v-col cols="12" sm="6">
+          <span class="body-1 font-weight-bold d-inline mx-3">Filtrar por producto:</span>
+          <v-dialog v-model="dialog" width="1200">
+            <template v-slot:activator="{ on:dialog }">
+              <v-tooltip bottom>
+                <template v-slot:activator="{ on: tooltip }">
+                  <v-btn v-on="{ ...tooltip, ...dialog }" tile color="primary" class="my-3 mr-3">
+                    <v-icon left>search</v-icon>Seleccionar producto
+                  </v-btn>
+                </template>
+                <span>Inventario</span>
+              </v-tooltip>
+            </template>
+            <v-card>
+              <v-toolbar color="primary" dark>
+                <v-toolbar-title>Productos</v-toolbar-title>
+              </v-toolbar>
+              <v-container>
+                <products
+                  @add-product="filters.product=$event._id;dialog=false;"
+                  :selectButton="true"
+                ></products>
+              </v-container>
+              <v-divider></v-divider>
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn color="primary" text @click="dialog = false">De acuerdo</v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+        </v-col>
+        <v-col cols="12" sm="6">
+          <v-row v-show="filters.product">
+            <v-simple-table v-if="filters.product">
+              <template v-slot:default>
+                <thead>
+                  <tr>
+                    <th class="text-left">
+                      <span>Tipo</span>
+                    </th>
+                    <th class="text-left">
+                      <span>Nombre</span>
+                    </th>
+                    <th class="text-left">
+                      <span>Marca</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>{{(productById(filters.product)).typeId?(productById(filters.product)).typeId.name:"Sin tipo"}}</td>
+                    <td>{{(productById(filters.product)).name}}</td>
+                    <td>{{(productById(filters.product)).brandId?(productById(filters.product)).brandId.name:"Sin marca"}}</td>
+                    <td>
+                      <v-btn color="error" small @click="filters.product=null;">Limpiar</v-btn>
+                    </td>
+                  </tr>
+                </tbody>
+              </template>
+            </v-simple-table>
+          </v-row>
+        </v-col>
+      </v-row>
+      <v-row justify="center">
+        <v-col cols="12" sm="6">
+          <v-btn block color="success" @click="initialData(1,filters)">Buscar!</v-btn>
+        </v-col>
+      </v-row>
 
+      <v-col cols="12" sm="12">
+        <p>
+          <strong>Cantidad de ventas:</strong>
+          {{$store.state.salesModule.total}}
+        </p>
+      </v-col>
       <div class="text-center pt-2">
-        <v-pagination v-model="page" @input="initialData(page)" :length="totalPages"></v-pagination>
+        <v-pagination v-model="page" @input="initialData(page,filters)" :length="totalPages"></v-pagination>
       </div>
       <v-data-table
         :loading="!isDataReady"
         :headers="headers"
         :items="sales"
         :options.sync="pagination"
-        :items-per-page="5"
-        :server-items-length="totalItems"
+        :items-per-page="500"
         hide-default-footer
+        :server-items-length="totalItems"
         class="elevation-1"
-        :footer-props="{
-        'items-per-page-text': 'yarita',
-        'items-per-page-options': [5, 10, 25]
-      }"
       >
         <template v-slot:no-data>
           <v-alert type="error" :value="true">Aún no cuentas con un historial de ventas</v-alert>
@@ -39,6 +144,9 @@
         </template>
         <template v-slot:item.amount="{item}">
           <span class="ganancia">S/.{{totalRevenue(item.products)}}</span>
+        </template>
+        <template v-slot:item.commerce="{item}">
+          <span>{{item.commerce}}</span>
         </template>
         <template v-slot:item.date="{item}">
           <div>
@@ -80,7 +188,7 @@
         <template v-slot:item.createdAt="{ item }">{{item.createdAt | formatDate}}</template>
       </v-data-table>
       <div class="text-center pt-2">
-        <v-pagination v-model="page" @input="initialData(page)" :length="totalPages"></v-pagination>
+        <v-pagination v-model="page" @input="initialData(page,filters)" :length="totalPages"></v-pagination>
       </div>
     </template>
   </custom-card>
@@ -90,14 +198,18 @@
 import { format } from "date-fns";
 import { mapGetters } from "vuex";
 import { buildPayloadPagination } from "@/utils/utils.js";
-// import { customHttpRequest } from "../../tools/customHttpRequest";
+import products from "@/views/drawerPages/products.vue";
 export default {
+  components: {
+    products,
+  },
   filters: {
     formatDate: function (value) {
       return format(new Date(value), "dd/MM/yyyy");
     },
   },
   data: () => ({
+    filters: { startDate: null, endDate: null, commerce: null, product: null },
     editedDate: null,
     editedIndex: null,
     editMode: false,
@@ -109,8 +221,8 @@ export default {
     pagination: {},
     search: "",
     dialog: false,
-    editedSale: { _id: null, date: null },
     headers: [
+      { text: "Negocio", value: "commerce" },
       { text: "Fecha de venta", value: "date" },
       { text: "Vendedor", value: "userId" },
       { text: "Productos vendidos", value: "products" },
@@ -130,23 +242,26 @@ export default {
     ...mapGetters({
       productById: "productsModule/productById",
     }),
+    commerce() {
+      return this.$store.state.commerce;
+    },
   },
   created() {
     this.initialData();
   },
   methods: {
-    async initialData(currentPage) {
+    async initialData(currentPage, filters) {
       try {
         this.$store.dispatch("loadingModule/showLoading");
         currentPage = currentPage || 1;
         this.sales = this.$deepCopy(
-          await this.$store.dispatch(
-            "salesModule/listWithProducts",
-            buildPayloadPagination({
+          await this.$store.dispatch("salesModule/listWithProducts", {
+            ...filters,
+            ...buildPayloadPagination({
               page: currentPage,
               itemsPerPage: this.$store.state.itemsPerPage,
-            })
-          )
+            }),
+          })
         );
         //populate with products
         for (let i = 0; i < this.sales.length; i++) {

@@ -42,7 +42,6 @@ const listInitOptions = async (req) => {
     const order = parseInt(req.query.order) || 1;
     const sort = req.query.sort || "createdAt";
     const sortBy = buildSort(sort, order);
-    console.log("este es el sortBy: ", sortBy);
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 99999;
     const options = {

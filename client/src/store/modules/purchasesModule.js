@@ -24,15 +24,26 @@ const module = {
           });
       });
     },
-    listWithProducts({ commit }, query) {
+    listWithProducts({ commit, rootGetters }, query) {
       return new Promise((resolve, reject) => {
         api
           .listWithProducts(query)
           .then((response) => {
-            commit("list", response.data.payload);
+            let purchases = response.data.payload;
+            // populate
+            const productById = rootGetters["productsModule/productById"];
+            //populate with products
+            for (let i = 0; i < purchases.length; i++) {
+              for (let j = 0; j < purchases[i].products.length; j++) {
+                purchases[i].products[j].productId = productById(
+                  purchases[i].products[j].productId
+                );
+              }
+            }
+            commit("list", purchases);
             commit("totalItems", response.data.totalDocs);
             commit("totalPages", response.data.totalPages);
-            resolve(response.data.payload);
+            resolve(purchases);
           })
           .catch((error) => {
             handleError(error, commit, reject);

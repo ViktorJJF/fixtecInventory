@@ -25,6 +25,7 @@ let toolSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Users",
     },
+    date: { type: Date, default: Date.now },
   },
   {
     versionKey: false,
@@ -34,7 +35,6 @@ let toolSchema = new Schema(
 
 //auto populate
 var autoPopulateLead = function (next) {
-  console.log("se paso por products gaea");
   this.populate("toolsTypeId");
   next();
 };

@@ -124,6 +124,16 @@
               ></v-text-field>
             </v-col>
             <v-col cols="12" sm="4">
+              <span class="font-weight-bold">Negocio</span>
+              <v-select
+                v-model="editedItem.commerce"
+                :items="commerce"
+                label="Selecciona el negocio"
+                outlined
+                dense
+              ></v-select>
+            </v-col>
+            <v-col cols="12" sm="4">
               <span class="font-weight-bold">Tipo</span>
               <v-select
                 dense
@@ -344,6 +354,9 @@ export default {
                 : true)
           )
         : this.products;
+    },
+    commerce() {
+      return this.$store.state.commerce;
     },
   },
 

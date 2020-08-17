@@ -32,7 +32,7 @@
             color="orange"
             icon="mdi-content-copy"
             title="Productos"
-            :value="$store.state.productsModule.length"
+            :value="$store.state.productsModule.products.length"
             small-value="Unidades"
           />
         </v-col>
@@ -53,7 +53,7 @@
           <material-stats-card
             color="indigo"
             icon="mdi-format-list-bulleted"
-            title="Tipos"
+            title="Tipos de productos"
             :value="types.length"
             sub-icon="mdi-update"
             sub-text="Justo Ahora"
@@ -65,7 +65,7 @@
             color="purple"
             icon="mdi-chart-line"
             title="Ventas"
-            :value="$store.getters.getTotalOrders"
+            :value="$store.state.salesModule.sales.length"
             sub-icon="mdi-update"
             sub-text="Justo Ahora"
             small-value="completadas"
@@ -76,7 +76,7 @@
             color="pink"
             icon="mdi-store"
             title="Compras"
-            :value="$store.getters.getTotalPurchases"
+            :value="$store.state.purchasesModule.purchases.length"
             sub-icon="mdi-update"
             sub-text="Justo Ahora"
             small-value="completadas"

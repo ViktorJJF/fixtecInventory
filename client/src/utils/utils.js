@@ -124,9 +124,17 @@ export const handleError = (error, commit, reject) => {
   console.log("sucedio un error....");
   console.log("el error: ", error);
   // Checks if unauthorized
+  if (!error.response) {
+    commit("errorModule/error", "La solicitud tardó mucho tiempo...", {
+      root: true,
+    });
+    return reject(error);
+  }
   if (error.response.status === 401) {
     store.dispatch("authModule/logout", { root: true });
+    console.log("se fue al loign");
   } else {
+    console.log("se produjo else");
     // Any other error
     errMsg = error.response
       ? error.response.data.errors.msg

@@ -77,8 +77,7 @@ export default {
     logout() {
       this.$store
         .dispatch("authModule/logout")
-        .then(() => {
-        })
+        .then(() => {})
         .catch((err) => {
           console.log("algo salio mal en logout:", err);
         });

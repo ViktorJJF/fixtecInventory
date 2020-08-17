@@ -48,6 +48,21 @@ let productSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Users",
     },
+    commerce: {
+      type: String,
+      default: "OTROS",
+      enum: {
+        values: [
+          "CELULARES",
+          "VENTA DE ACCESORIOS",
+          "VENTA DE REPUESTOS",
+          "SOFTWARE",
+          "HARDWARE",
+          "OTROS",
+        ],
+        message: "{VALUE} no es un rol válido",
+      },
+    },
   },
   {
     versionKey: false,
@@ -57,7 +72,6 @@ let productSchema = new Schema(
 
 //auto populate
 var autoPopulateLead = function (next) {
-  console.log("se paso por products gaea");
   this.populate("typeId");
   this.populate("brandId");
   this.populate("colorId");

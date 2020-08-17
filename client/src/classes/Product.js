@@ -10,4 +10,5 @@ export default () => ({
   purchasePrice: 0,
   price: 0,
   description: "",
+  commerce: null,
 });

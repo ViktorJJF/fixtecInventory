@@ -76,7 +76,7 @@
                   <v-btn class="mb-2" small color="error" @click="deleteItem(item)">Eliminar</v-btn>
                 </template>
                 <template v-slot:item.createdAt="{ item }">{{item.createdAt | formatDate}}</template>
-                <template v-slot:item.typeId="{ item }">S/.{{item.typeId.name}}</template>
+                <template v-slot:item.typeId="{ item }">{{item.typeId?item.typeId.name:'Sin tipo'}}</template>
                 <template v-slot:item.price="{ item }">S/.{{item.price}}</template>
                 <template v-slot:no-data>
                   <v-alert type="error" :value="true">No se encontraron datos</v-alert>
@@ -213,15 +213,9 @@ export default {
       return this.$store.state.typesModule.types;
     },
     filteredServices() {
-      return this.selectedType || this.selectedBrand
-        ? this.services.filter(
-            (service) =>
-              (this.selectedType
-                ? service.typeId._id === this.selectedType
-                : true) &&
-              (this.selectedBrand
-                ? service.brandId._id === this.selectedBrand
-                : true)
+      return this.selectedType
+        ? this.services.filter((service) =>
+            service.typeId ? service.typeId._id === this.selectedType : null
           )
         : this.services;
     },

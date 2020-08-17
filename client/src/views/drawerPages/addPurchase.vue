@@ -30,11 +30,11 @@
             ></v-select>
           </v-col>
           <v-spacer></v-spacer>
-          <v-switch
+          <!-- <v-switch
             class="mb-5"
             v-model="historyMode"
             :label="'Modo histórico: '+(historyMode?'Activo':'Inactivo')"
-          ></v-switch>
+          ></v-switch>-->
         </v-row>
         <v-dialog v-model="dialog" width="1200">
           <template v-slot:activator="{ on:dialog }">
@@ -177,6 +177,7 @@
 
 <script>
 import products from "@/views/drawerPages/products.vue";
+import formatISO from "date-fns/formatISO";
 export default {
   components: {
     products,
@@ -194,7 +195,7 @@ export default {
       selectedCommerce: "",
       historyMode: false,
       selectedProduct: null,
-      date: new Date().toISOString().substr(0, 10),
+      date: formatISO(new Date(), { representation: "date" }),
       menu: false,
       purchases: [],
       total: 0,

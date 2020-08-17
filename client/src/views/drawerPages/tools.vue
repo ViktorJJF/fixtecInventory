@@ -47,6 +47,18 @@
                       <v-divider></v-divider>
                       <v-container fluid class="pa-5">
                         <v-row>
+                          <v-col cols="12" sm="12" md="12">
+                            <span class="font-weight-bold">Fecha:</span>
+                            <v-text-field
+                              outlined
+                              dense
+                              hide-details
+                              v-model="date"
+                              prepend-icon="event"
+                              type="date"
+                              class="date-width"
+                            ></v-text-field>
+                          </v-col>
                           <v-col cols="12" sm="12">
                             <span class="font-weight-bold">Nombre</span>
                             <v-text-field
@@ -54,7 +66,7 @@
                               hide-details
                               outlined
                               v-model="editedItem.name"
-                              placeholder="Nombre del producto"
+                              placeholder="Nombre de la inversión"
                             ></v-text-field>
                           </v-col>
                           <v-col cols="12" sm="4">
@@ -134,6 +146,7 @@
               </v-row>
             </v-container>
           </template>
+          <template v-slot:item.date="{item}">{{item.date | formatDate}}</template>
           <template
             v-slot:item.toolsTypeId="{ item }"
           >{{item.toolsTypeId?item.toolsTypeId.name:'Sin tipo'}}</template>
@@ -142,7 +155,7 @@
             <v-btn small color="error" @click="deleteItem(item)">Eliminar</v-btn>
           </template>
           <template v-slot:no-data>
-            <v-alert type="error" :value="true">Aún no cuentas con tipos de productos</v-alert>
+            <v-alert type="error" :value="true">Aún no cuentas con inversiones</v-alert>
           </template>
           <!-- <template v-slot:item.createdAt="{ item }">{{item.createdAt | formatDate}}</template>
           <template v-slot:item.status="{item}">
@@ -165,16 +178,18 @@
 </template>
 
 <script>
-import { format } from "date-fns";
+import { format, formatISO } from "date-fns";
 import Tools from "../../classes/Tools";
 export default {
   components: {},
   filters: {
     formatDate: function (value) {
+      if (!value) return "Sin fecha";
       return format(new Date(value), "dd/MM/yyyy");
     },
   },
   data: () => ({
+    date: formatISO(new Date(), { representation: "date" }),
     page: 1,
     pageCount: 0,
     selectedType: null,
@@ -183,6 +198,12 @@ export default {
     search: "",
     dialog: false,
     headers: [
+      {
+        text: "Fecha",
+        align: "left",
+        sortable: false,
+        value: "date",
+      },
       {
         text: "Nombre",
         align: "left",
@@ -224,7 +245,7 @@ export default {
 
   computed: {
     formTitle() {
-      return this.editedIndex === -1 ? "Nuevo tipo" : "Editar tipo";
+      return this.editedIndex === -1 ? "Nueva inversión" : "Editar inversión";
     },
     filteredTools() {
       return this.selectedType
@@ -264,6 +285,11 @@ export default {
     },
     editItem(item) {
       this.editedIndex = this.tools.indexOf(item);
+      //format date
+      if (item.date)
+        this.date = formatISO(new Date(item.date), { representation: "date" });
+      else this.date = null;
+      //assign edited item
       this.editedItem = Object.assign({}, item);
       this.dialog = true;
     },
@@ -280,12 +306,20 @@ export default {
     close() {
       this.dialog = false;
       setTimeout(() => {
+        this.date = formatISO(new Date(), { representation: "date" });
         this.editedItem = Object.assign({}, this.defaultItem);
         this.editedIndex = -1;
       }, 300);
     },
 
     async save() {
+      //fix date
+      this.editedItem.date = new Date(this.date);
+      this.editedItem.date = new Date(
+        this.editedItem.date.getTime() -
+          this.editedItem.date.getTimezoneOffset() * -60000
+      );
+      //begin
       this.loadingButton = true;
       if (this.editedIndex > -1) {
         let itemId = this.tools[this.editedIndex]._id;

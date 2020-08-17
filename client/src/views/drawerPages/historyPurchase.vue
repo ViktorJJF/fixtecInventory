@@ -222,9 +222,9 @@ export default {
     dialog: false,
     headers: [
       { text: "Negocio", value: "commerce" },
-      { text: "Fecha de venta", value: "date" },
-      { text: "Vendedor", value: "userId" },
-      { text: "Productos vendidos", value: "products" },
+      { text: "Fecha de compra", value: "date" },
+      { text: "Comprador", value: "userId" },
+      { text: "Productos comprados", value: "products" },
       { text: "Inversión", value: "amount" },
       { text: "Acciones", value: "actions" },
     ],

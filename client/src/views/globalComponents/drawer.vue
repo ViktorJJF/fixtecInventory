@@ -107,14 +107,19 @@ export default {
           items: [
             {
               icon: "mdi-bookmark-plus-outline",
-              title: "Ganancia diaria",
-              to: "reportDailyRevenue",
+              title: "Reporte de compras",
+              to: "ReportPurchases",
             },
-            {
-              icon: "mdi-format-list-checks",
-              title: "Ganancia por producto",
-              to: "reportRevenuePerProduct",
-            },
+            // {
+            //   icon: "mdi-bookmark-plus-outline",
+            //   title: "Ganancia diaria",
+            //   to: "reportDailyRevenue",
+            // },
+            // {
+            //   icon: "mdi-format-list-checks",
+            //   title: "Ganancia por producto",
+            //   to: "reportRevenuePerProduct",
+            // },
           ],
         },
         {

@@ -9,7 +9,7 @@ const { ObjectId } = require("mongodb");
 const stockAvailable = async (productId, qty) => {
   try {
     let product = await Product.findOne({ _id: productId });
-    return product.stock > qty;
+    return product.stock >= qty;
   } catch (error) {
     throw error;
   }
@@ -35,98 +35,17 @@ const list = async (req, res) => {
   }
 };
 const listWithProducts = async (req, res) => {
-  // try {
-  //   // let filterProducts = {};
-  //   let limit = parseInt(req.query.limit) || 20;
-  //   let filter = {};
-  //   let options = {};
-  //   let page = req.query.page || 1;
-  //   //filter product
-  //   // if (req.query.product) {
-  //   //   filter["products.productId"] = ObjectId(req.query.product);
-  //   // }
-  //   //filter commerce
-  //   if (req.query.commerce) {
-  //     filter["commerce"] = req.query.commerce;
-  //   }
-  //   //filter date range
-  //   if (req.query.startDate || req.query.endDate) {
-  //     filter["date"] = {};
-  //     if (req.query.startDate)
-  //       filter.date["$gte"] = utils.convertToDate(req.query.startDate);
-  //     if (req.query.endDate)
-  //       filter.date["$lte"] = utils.convertToDate(req.query.endDate);
-  //   }
-  //   console.log("este es el filtro: ", filter);
-  //   //options
-  //   options["limit"] = limit;
-  //   options["skip"] = (parseInt(page) - 1) * parseInt(limit) || 0;
-  //   //aggregate
-  //   let aggregated = await model.aggregate([
-  //     { $match: filter },
-  //     { $skip: options.skip },
-  //     {
-  //       $facet: {
-  //         info: [
-  //           {
-  //             $count: "totalDocs",
-  //           },
-  //           {
-  //             $project: {
-  //               _id: "1",
-  //               totalDocs: "$totalDocs",
-  //               totalPages: {
-  //                 $ceil: { $divide: ["$totalDocs", limit] },
-  //               },
-  //               page: { $toInt: page },
-  //             },
-  //           },
-  //         ],
-  //         result: [
-  //           { $limit: options.limit },
-  //           {
-  //             $lookup: {
-  //               from: "salesdetails",
-  //               localField: "_id",
-  //               foreignField: "saleId",
-  //               as: "products",
-  //             },
-  //           },
-  //           {
-  //             $lookup: {
-  //               from: "users",
-  //               localField: "userId",
-  //               foreignField: "_id",
-  //               as: "userId",
-  //             },
-  //           },
-  //           { $unwind: "$userId" }, //array to object (like populate)
-  //           {
-  //             $match: {
-  //               "products.productId": ObjectId(req.query.product),
-  //             },
-  //           },
-  //         ],
-  //       },
-  //     },
-  //     { $unwind: "$info" },
-  //     {
-  //       $project: {
-  //         totalDocs: "$info.totalDocs",
-  //         payload: "$result",
-  //         totalPages: "$info.totalPages",
-  //         page: "$info.page",
-  //       },
-  //     },
-  //   ]);
-  //   res.status(200).json({ ok: true, ...aggregated[0] });
-  //   // res.status(200).json(await db.getAggregatedItems(req, model, aggregated));
-  // } catch (error) {
-  //   console.log("el error: ", error);
-  //   utils.handleError(res, error);
-  // }
-
   try {
+    // let filterProducts = {};
+    // let limit = parseInt(req.query.limit) || 20;
+    // let filter = {};
+    // let options = {};
+    // let page = req.query.page || 1;
+    //filter product
+    // if (req.query.product) {
+    //   filter["products.productId"] = ObjectId(req.query.product);
+    // }
+    //filter commerce
     let filterProducts = {};
     let filterDate = {};
     //filter product
@@ -145,7 +64,129 @@ const listWithProducts = async (req, res) => {
       if (req.query.endDate)
         filterDate.date["$lte"] = utils.convertToDate(req.query.endDate);
     }
+    //options
+    // options["limit"] = limit;
+    // options["skip"] = (parseInt(page) - 1) * parseInt(limit) || 0;
     //aggregate
+    // let aggregated = await SalesDetail.aggregate([
+    //   {
+    //     $match: {
+    //       productId: ObjectId("5f2fd39924e1951cf08b806c"),
+    //     },
+    //   },
+    //   {
+    //     $group: {
+    //       _id: "$saleId",
+    //     },
+    //   },
+    //   // {
+    //   //   $unwind: "$saleId",
+    //   // },
+    //   // {
+    //   //   $project: {
+    //   //     saleId: "$_id",
+    //   //   },
+    //   // },
+    //   {
+    //     $lookup: {
+    //       from: "sales",
+    //       localField: "_id",
+    //       foreignField: "_id",
+    //       as: "sale",
+    //     },
+    //   },
+    //   { $unwind: "$sale" },
+    //   //set filtes by date or commerce
+    //   {
+    //     $lookup: {
+    //       from: "salesdetails",
+    //       localField: "_id",
+    //       foreignField: "saleId",
+    //       as: "products",
+    //     },
+    //   },
+    //   // {
+    //   //   $project: {
+    //   //     _id: "$sale._id",
+    //   //     date: "$sale.date",
+    //   //     userId: "$sale.userId",
+    //   //     commerce: "$sale.commerce",
+    //   //     products: "$products",
+    //   //     total: 0,
+    //   //   },
+    //   // },
+    //   // },
+    //   // { $out: "dimen_saleId" },
+    //   // { $match: filter },
+    //   // // { $skip: options.skip },
+    //   // {
+    //   //   $facet: {
+    //   //     info: [
+    //   //       {
+    //   //         $count: "totalDocs",
+    //   //       },
+    //   //       {
+    //   //         $project: {
+    //   //           _id: "1",
+    //   //           totalDocs: "$totalDocs",
+    //   //           totalPages: {
+    //   //             $ceil: { $divide: ["$totalDocs", limit] },
+    //   //           },
+    //   //           page: { $toInt: page },
+    //   //         },
+    //   //       },
+    //   //     ],
+    //   //     result: [
+    //   //       { $limit: options.limit },
+    //   //       // {
+    //   //       //   $lookup: {
+    //   //       //     from: "salesdetails",
+    //   //       //     localField: "_id",
+    //   //       //     foreignField: "saleId",
+    //   //       //     as: "products",
+    //   //       //   },
+    //   //       // },
+    //   //       {
+    //   //         $lookup: {
+    //   //           from: "salesdetails",
+    //   //           let: { saleId: "$_id" },
+    //   //           pipeline: [
+    //   //             {
+    //   //               $match: {
+    //   //                 $expr: {
+    //   //                   $and: [
+    //   //                     { $eq: ["$saleId", "$$saleId"] },
+    //   //                     { $eq: ["$productId", ObjectId(req.query.product)] },
+    //   //                   ],
+    //   //                 },
+    //   //               },
+    //   //             },
+    //   //             { $project: { saleId: "$saleId" } },
+    //   //           ],
+    //   //           as: "filteredSales",
+    //   //         },
+    //   //       },
+    //   //       { $unwind: "$userId" }, //array to object (like populate)
+    //   //       // {
+    //   //       //   $match: {
+    //   //       //     "products.productId": ObjectId(req.query.product),
+    //   //       //   },
+    //   //       // },
+    //   //     ],
+    //   //   },
+    //   // },
+    //   // { $unwind: "$info" },
+    //   // {$match:}
+    //   // {
+    //   //   $project: {
+    //   //     totalDocs: "$info.totalDocs",
+    //   //     payload: "$result.filteredSales",
+    //   //     totalPages: "$info.totalPages",
+    //   //     page: "$info.page",
+    //   //   },
+    //   // },
+    // ]);
+    // res.status(200).json({ ok: true, aggregated });
     let aggregated = model.aggregate([
       {
         $match: filterDate,
@@ -184,6 +225,8 @@ const listWithProducts = async (req, res) => {
     ]);
 
     res.status(200).json(await db.getAggregatedItems(req, model, aggregated));
+    // res.status(200).json({ ok: true, ...aggregated[0] });
+    // res.status(200).json(await db.getAggregatedItems(req, model, aggregated));
   } catch (error) {
     console.log("el error: ", error);
     utils.handleError(res, error);

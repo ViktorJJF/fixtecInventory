@@ -1,5 +1,5 @@
 <template>
-  <v-container class="container-width">
+  <v-container class="container-width pa-5">
     <h1 class="mb-3">
       Ventas de hoy:
       <span class="ganancia">S/.560</span>
@@ -8,7 +8,7 @@
       Ganancias de hoy:
       <span class="ganancia">S/.340</span>
     </h1>
-    <v-simple-table>
+    <v-simple-table class="custom-table">
       <template v-slot:default>
         <thead>
           <tr>
@@ -108,13 +108,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-th {
-  span {
-    color: black;
-    font-size: 1.4em;
-  }
-}
 .container-width {
-  width: 1500px;
+  max-width: 1000px;
 }
 </style>

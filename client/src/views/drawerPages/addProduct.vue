@@ -1,7 +1,7 @@
 <template>
   <v-container fluid>
     <v-row>
-      <v-col cols="12" sm="12">
+      <v-col cols="12" sm="7">
         <span class="font-weight-bold">Nombre</span>
         <v-text-field
           dense
@@ -10,6 +10,16 @@
           v-model="newProduct.name"
           placeholder="Nombre del producto"
         ></v-text-field>
+      </v-col>
+      <v-col cols="12" sm="5">
+        <span class="font-weight-bold">Negocio</span>
+        <v-select
+          v-model="newProduct.commerce"
+          :items="commerce"
+          label="Selecciona el negocio"
+          outlined
+          dense
+        ></v-select>
       </v-col>
       <v-col cols="12" sm="4">
         <span class="font-weight-bold">Tipo</span>
@@ -170,6 +180,9 @@ export default {
     },
     qualities() {
       return this.$store.state.qualitiesModule.qualities;
+    },
+    commerce() {
+      return this.$store.state.commerce;
     },
   },
   methods: {

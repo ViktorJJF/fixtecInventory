@@ -107,6 +107,11 @@ let routes = [
         component: () =>
           import("@/views/drawerPages/reportRevenuePerProduct.vue"),
       },
+      {
+        path: "/reporte-de-compras",
+        name: "ReportPurchases",
+        component: () => import("@/views/drawerPages/ReportPurchases.vue"),
+      },
     ],
   },
   {

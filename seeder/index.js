@@ -2,7 +2,6 @@ require("dotenv").config();
 const mongoose = require("mongoose");
 const initMongo = require("../server/config/mongo");
 const fs = require("fs");
-console.log("el env: ", process.env);
 initMongo();
 
 const CLEANFIRST = true;

@@ -1,8 +1,8 @@
 <template>
   <v-container class="container-width pa-5">
     <h1 class="mb-3">
-      Total de compras del año 2020:
-      <span class>S/.{{totalPurchases}}</span>
+      Total de compras:
+      <span class>S/.{{totalPurchases | formatMoney}}</span>
     </h1>
     <v-container fluid>
       <v-simple-table class="custom-table">
@@ -86,11 +86,13 @@ export default {
       return this.$store.state.purchasesModule.purchases;
     },
     totalPurchases() {
-      return this.purchases.reduce(
-        (a, b) =>
-          a + b.products.reduce((c, d) => c + d.purchasePrice * d.qty, 0),
-        0
-      );
+      return this.purchases
+        .reduce(
+          (a, b) =>
+            a + b.products.reduce((c, d) => c + d.purchasePrice * d.qty, 0),
+          0
+        )
+        .toFixed(2);
     },
   },
   methods: {

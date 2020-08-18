@@ -12,6 +12,7 @@ const {
 const buildSort = (sort, order) => {
   const sortBy = {};
   sortBy[sort] = order;
+  sortBy["createdAt"] = -1;
   return sortBy;
 };
 

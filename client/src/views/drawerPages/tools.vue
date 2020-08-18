@@ -255,10 +255,9 @@ export default {
         : this.tools;
     },
     totalInvestment() {
-      return this.filteredTools.reduce(
-        (a, b) => a + b.purchasePrice * b.stock,
-        0
-      );
+      return this.filteredTools
+        .reduce((a, b) => a + b.purchasePrice * b.stock, 0)
+        .toFixed(2);
     },
   },
 

@@ -50,6 +50,8 @@ Vue.mixin({
     console: () => console,
   },
 });
+//filters
+import "@/filters/formatMoney";
 
 new Vue({
   vuetify,

@@ -263,14 +263,6 @@ export default {
             }),
           })
         );
-        //populate with products
-        for (let i = 0; i < this.sales.length; i++) {
-          for (let j = 0; j < this.sales[i].products.length; j++) {
-            this.sales[i].products[j].productId = this.productById(
-              this.sales[i].products[j].productId
-            );
-          }
-        }
       } catch (error) {
         console.log("algo salio mal...:", error);
       } finally {

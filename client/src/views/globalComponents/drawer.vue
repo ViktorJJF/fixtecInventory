@@ -107,6 +107,11 @@ export default {
           items: [
             {
               icon: "mdi-bookmark-plus-outline",
+              title: "Reporte de ventas",
+              to: "ReportSales",
+            },
+            {
+              icon: "mdi-bookmark-plus-outline",
               title: "Reporte de compras",
               to: "ReportPurchases",
             },

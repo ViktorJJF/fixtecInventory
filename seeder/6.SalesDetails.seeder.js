@@ -9,11 +9,12 @@ module.exports = new Promise(async (resolve, reject) => {
   let products = await Product.find();
   let sales = await Sale.find();
   // //GET DATA
-  for (let i = 0; i < 5000; i++) {
+  for (let i = 0; i < 300; i++) {
     json.push({
       saleId: selectRandomId(sales),
       productId: selectRandomId(products),
       salePrice: faker.commerce.price(50, 100),
+      purchasePrice: faker.commerce.price(25, 40),
       qty: faker.random.number(10),
     });
   }

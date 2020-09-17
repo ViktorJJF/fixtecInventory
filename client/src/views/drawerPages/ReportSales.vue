@@ -26,9 +26,6 @@
                 <span>Fecha</span>
               </th>
               <th class="text-center">
-                <span>Vendedor</span>
-              </th>
-              <th class="text-center">
                 <span>Productos</span>
               </th>
               <th class="text-center">
@@ -49,7 +46,6 @@
                 <b>{{ item.commerce }}</b>
               </td>
               <td class="text-center">{{ item.date | formatDate }}</td>
-              <td class="text-center">{{ item.userId.email }}</td>
               <td class="text-center">
                 <ul>
                   <li
@@ -65,7 +61,6 @@
               >S/.{{(subTotalRevenue(item.products)-subTotalCost(item.products)) | formatMoney}}</td>
             </tr>
             <tr>
-              <td class="text-center"></td>
               <td class="text-center"></td>
               <td class="text-center"></td>
               <td class="text-center"></td>
@@ -149,7 +144,4 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.container-width {
-  width: 1500px;
-}
 </style>

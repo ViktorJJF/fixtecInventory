@@ -1,5 +1,5 @@
 <template>
-  <custom-card title="Historial de ventas" icon="mdi-format-list-checks">
+  <custom-card title="Historial de ventas de servicios" icon="mdi-format-list-checks">
     <template v-slot:content>
       <v-row align="center" class="mb-3">
         <v-col cols="12" sm="4">
@@ -37,41 +37,10 @@
             dense
             placeholder="Selecciona un negocio"
             v-model="filters.commerce"
-            :items="['VENTA DE ACCESORIOS','VENTA DE REPUESTOS','CELULARES']"
+            :items="['SOFTWARE','HARDWARE']"
             class="mr-3 mb-3"
             outlined
           ></v-select>
-        </v-col>
-        <v-col cols="12" sm="6">
-          <span class="body-1 font-weight-bold d-inline mx-3">Filtrar por producto:</span>
-          <v-dialog v-model="dialog" width="1200">
-            <template v-slot:activator="{ on:dialog }">
-              <v-tooltip bottom>
-                <template v-slot:activator="{ on: tooltip }">
-                  <v-btn v-on="{ ...tooltip, ...dialog }" tile color="primary" class="my-3 mr-3">
-                    <v-icon left>search</v-icon>Seleccionar producto
-                  </v-btn>
-                </template>
-                <span>Inventario</span>
-              </v-tooltip>
-            </template>
-            <v-card>
-              <v-toolbar color="primary" dark>
-                <v-toolbar-title>Productos</v-toolbar-title>
-              </v-toolbar>
-              <v-container>
-                <products
-                  @add-product="filters.product=$event._id;dialog=false;"
-                  :selectButton="true"
-                ></products>
-              </v-container>
-              <v-divider></v-divider>
-              <v-card-actions>
-                <v-spacer></v-spacer>
-                <v-btn color="primary" text @click="dialog = false">De acuerdo</v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-dialog>
         </v-col>
         <v-col cols="12" sm="6">
           <v-row v-show="filters.product">
@@ -113,8 +82,8 @@
 
       <v-col cols="12" sm="12">
         <p>
-          <strong>Cantidad de ventas:</strong>
-          {{$store.state.salesModule.total}}
+          <strong>Cantidad de ventas de servicios:</strong>
+          {{$store.state.salesServicesModule.total}}
         </p>
       </v-col>
       <div class="text-center pt-2">
@@ -123,7 +92,7 @@
       <v-data-table
         :loading="!isDataReady"
         :headers="headers"
-        :items="sales"
+        :items="salesServices"
         :options.sync="pagination"
         :items-per-page="500"
         hide-default-footer
@@ -198,11 +167,7 @@
 import { format } from "date-fns";
 import { mapGetters } from "vuex";
 import { buildPayloadPagination } from "@/utils/utils.js";
-import products from "@/views/drawerPages/products.vue";
 export default {
-  components: {
-    products,
-  },
   filters: {
     formatDate: function (value) {
       return format(new Date(value), "dd/MM/yyyy");
@@ -229,15 +194,15 @@ export default {
       { text: "Beneficio", value: "amount" },
       { text: "Acciones", value: "actions" },
     ],
-    sales: [],
+    salesServices: [],
     orderDetails: [],
   }),
   computed: {
     totalItems() {
-      return this.$store.state.salesModule.totalSales;
+      return this.$store.state.salesServicesModule.totalSalesServices;
     },
     totalPages() {
-      return this.$store.state.salesModule.totalPages;
+      return this.$store.state.salesServicesModule.totalPages;
     },
     ...mapGetters({
       productById: "productsModule/productById",
@@ -254,8 +219,12 @@ export default {
       try {
         this.$store.dispatch("loadingModule/showLoading");
         currentPage = currentPage || 1;
-        this.sales = this.$deepCopy(
-          await this.$store.dispatch("salesModule/listWithProducts", {
+        console.log(
+          "listado: ",
+          await this.$store.dispatch("salesServicesModule/list")
+        );
+        this.salesServices = this.$deepCopy(
+          await this.$store.dispatch("salesServicesModule/listWithProducts", {
             ...filters,
             ...buildPayloadPagination({
               page: currentPage,
@@ -274,7 +243,7 @@ export default {
       let date = new Date(this.editedDate);
       date = new Date(date.getTime() - date.getTimezoneOffset() * -60000);
       sale.date = date;
-      await this.$store.dispatch("salesModule/update", {
+      await this.$store.dispatch("salesServicesModule/update", {
         id: sale._id,
         data: {
           commerce: sale.commerce,
@@ -282,17 +251,17 @@ export default {
         },
       });
     },
-    totalRevenue(salesDetail) {
-      if (salesDetail)
-        return salesDetail
+    totalRevenue(salesServicesDetail) {
+      if (salesServicesDetail)
+        return salesServicesDetail
           .reduce((a, b) => a + b.salePrice * b.qty, 0)
           .toFixed(2);
       else return "S/.0";
     },
     async deleteItem(item) {
-      const index = this.sales.indexOf(item);
-      let itemId = this.sales[index]._id;
-      let detailsProducts = this.sales[index].products;
+      const index = this.salesServices.indexOf(item);
+      let itemId = this.salesServices[index]._id;
+      let detailsProducts = this.salesServices[index].products;
       if (
         await this.$confirm(
           "¿Seguro que deseas eliminar esta venta? Se sumará el stock a los productos del detalle"
@@ -300,7 +269,7 @@ export default {
       ) {
         try {
           this.$store.dispatch("loadingModule/showLoading");
-          await this.$store.dispatch("salesModule/delete", itemId);
+          await this.$store.dispatch("salesServicesModule/delete", itemId);
           for (const detailsProduct of detailsProducts) {
             console.log("este es el history: ", detailsProduct.history);
             if (!detailsProduct.history) {
@@ -310,7 +279,7 @@ export default {
               });
             }
           }
-          this.sales.splice(index, 1);
+          this.salesServices.splice(index, 1);
         } catch (error) {
           console.log(error);
         } finally {

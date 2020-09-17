@@ -1,9 +1,10 @@
-const model = require("../models/Purchases.js");
-const PurchasesDetail = require("../models/PurchasesDetails.js");
-const { ObjectId } = require("mongodb");
+const model = require("../models/SalesServices.js");
 const utils = require("../helpers/utils");
 const db = require("../helpers/db");
+const { ObjectId } = require("mongodb");
 const { updateStock } = require("../mongoMiddlewares/Middlewares");
+
+//methods
 
 const listAll = async (req, res) => {
   try {
@@ -24,6 +25,16 @@ const list = async (req, res) => {
 };
 const listWithProducts = async (req, res) => {
   try {
+    // let filterProducts = {};
+    // let limit = parseInt(req.query.limit) || 20;
+    // let filter = {};
+    // let options = {};
+    // let page = req.query.page || 1;
+    //filter product
+    // if (req.query.product) {
+    //   filter["products.productId"] = ObjectId(req.query.product);
+    // }
+    //filter commerce
     let filterProducts = {};
     let filterDate = {};
     //filter product
@@ -42,17 +53,16 @@ const listWithProducts = async (req, res) => {
       if (req.query.endDate)
         filterDate.date["$lte"] = utils.convertToDate(req.query.endDate);
     }
-    //aggregate
     let aggregated = model.aggregate([
       {
         $match: filterDate,
       },
       {
         $lookup: {
-          from: "purchasesdetails",
+          from: "salesdetails",
           localField: "_id",
-          foreignField: "purchaseId",
-          as: "productsByPurchase",
+          foreignField: "saleId",
+          as: "productsBySale",
         },
       },
       // { $unwind: "$products" },
@@ -71,7 +81,7 @@ const listWithProducts = async (req, res) => {
           date: "$date",
           userId: "$users",
           createdAt: "$createdAt",
-          products: "$productsByPurchase",
+          products: "$productsBySale",
           commerce: "$commerce",
         },
       },
@@ -81,6 +91,8 @@ const listWithProducts = async (req, res) => {
     ]);
 
     res.status(200).json(await db.getAggregatedItems(req, model, aggregated));
+    // res.status(200).json({ ok: true, ...aggregated[0] });
+    // res.status(200).json(await db.getAggregatedItems(req, model, aggregated));
   } catch (error) {
     console.log("el error: ", error);
     utils.handleError(res, error);
@@ -98,52 +110,32 @@ const listOne = async (req, res) => {
 
 const create = async (req, res) => {
   try {
-    //create purchase
     req.body.userId = req.user._id;
-    //populate with purchased products
-    let products = req.body.products;
-    if (products.length === 0)
-      throw utils.buildErrObject(422, "No agregaste productos a la compra");
-    //begin transaction
-    let createdPurchase, purchasedProducts;
+    let services = req.body.services;
+    //validations
+    if (services.length === 0)
+      throw utils.buildErrObject(422, "No agregaste servicios");
+    //begin transaction and update stock
+    let createdSaleService;
     const session = await model.startSession();
     try {
       await session.withTransaction(async () => {
-        //create purchase
-        createdPurchase = await db.createItem(req.body, model, session);
-        //adding new purchase id to products
-        for (const product of products) {
-          product.purchaseId = createdPurchase.payload._id;
-        }
-        //creating purchases details rows
-        purchasedProducts = await Promise.all(
-          products.map((product) =>
-            db.createItem(product, PurchasesDetail, session)
-          )
-        );
-        purchasedProducts = purchasedProducts.map(
-          (soldProduct) => soldProduct.payload
-        );
-        for (const product of purchasedProducts) {
-          await updateStock(product.productId, product.qty, session);
+        createdSaleService = await db.createItem(req.body, model, session);
+        for (const service of createdSaleService.payload.services) {
+          for (const product of service.cost.products) {
+            await updateStock(product, -1, session);
+          }
         }
       });
     } catch (error) {
-      console.log(error);
-      throw utils.buildErrObject(
-        422,
-        "Algo salió mal... intenta agregar tu compra de nuevo"
-      );
+      console.log("error en transaccion: ", error);
     } finally {
       session.endSession();
     }
-    //return purchase id with products
+    //end transaction
     res.status(200).json({
       ok: true,
-      payload: {
-        products: purchasedProducts,
-        ...createdPurchase.payload.toObject(),
-      },
+      payload: createdSaleService,
     });
   } catch (error) {
     utils.handleError(res, error);
@@ -161,35 +153,7 @@ const update = async (req, res) => {
 const deletes = async (req, res) => {
   try {
     const id = await utils.isIDGood(req.params.id);
-    //begin transaction
-    let deletedItemPayload;
-    const session = await model.startSession();
-    try {
-      await session.withTransaction(async () => {
-        //delete purchase
-        deletedItemPayload = await db.deleteItem(id, model, session);
-        //delete purchase details
-        let purchasesDetails = await PurchasesDetail.find({ purchaseId: id });
-        for (const purchasesDetail of purchasesDetails) {
-          await db.deleteItem(purchasesDetail._id, PurchasesDetail, session);
-          //update stock
-          await updateStock(
-            purchasesDetail.productId,
-            -purchasesDetail.qty,
-            session
-          );
-        }
-      });
-    } catch (error) {
-      console.log(error);
-      throw utils.buildErrObject(
-        422,
-        "Algo salió mal... intenta eliminar tu compra de nuevo"
-      );
-    } finally {
-      session.endSession();
-    }
-    res.status(200).json(deletedItemPayload);
+    res.status(200).json(await db.deleteItem(id, model));
   } catch (error) {
     utils.handleError(res, error);
   }

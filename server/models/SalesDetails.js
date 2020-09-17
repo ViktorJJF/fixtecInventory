@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-let middlewares = require("../mongoMiddlewares/Middlewares");
 
 let Schema = mongoose.Schema;
 
@@ -31,39 +30,5 @@ let salesDetailSchema = new Schema(
     versionKey: false,
   }
 );
-
-//substract stock function
-const substractStockHook = async (doc, next) => {
-  let createdSaleDetail = doc;
-  try {
-    if (!createdSaleDetail.history) {
-      await middlewares.updateStock(
-        createdSaleDetail.productId,
-        -createdSaleDetail.qty
-      );
-    }
-  } catch (error) {
-    console.log(error);
-  }
-  next();
-};
-//increase stock function
-const increaseStockHook = async (doc, next) => {
-  let createdSaleDetail = doc;
-  try {
-    if (!createdSaleDetail.history) {
-      await middlewares.updateStock(
-        createdSaleDetail.productId,
-        createdSaleDetail.qty
-      );
-    }
-  } catch (error) {
-    console.log(error);
-  }
-  next();
-};
-
-salesDetailSchema.post("save", substractStockHook); // substract stock
-salesDetailSchema.post("remove", increaseStockHook); // increase stock
 
 module.exports = mongoose.model("SalesDetails", salesDetailSchema);

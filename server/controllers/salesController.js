@@ -4,6 +4,7 @@ const Product = require("../models/Products.js");
 const utils = require("../helpers/utils");
 const db = require("../helpers/db");
 const { ObjectId } = require("mongodb");
+const { updateStock } = require("../mongoMiddlewares/Middlewares");
 
 //Public functions
 const stockAvailable = async (productId, qty) => {
@@ -257,17 +258,36 @@ const create = async (req, res) => {
       )
         throw utils.buildErrObject(422, "No cuentas con stock suficiente...");
     }
-    //adding new sale id to products
-    //create sale
-    let createdSale = await db.createItem(req.body, model);
-    for (const product of products) {
-      product.saleId = createdSale.payload._id;
+    //begin transaction
+    let createdSale, soldProducts;
+    const session = await model.startSession();
+    try {
+      await session.withTransaction(async () => {
+        //create sale
+        createdSale = await db.createItem(req.body, model, session);
+        //adding new sale id to products
+        for (const product of products) {
+          product.saleId = createdSale.payload._id;
+        }
+        //creating sales details rows
+        soldProducts = await Promise.all(
+          products.map((product) =>
+            db.createItem(product, SalesDetail, session)
+          )
+        );
+        soldProducts = soldProducts.map((soldProduct) => soldProduct.payload);
+        for (const product of soldProducts) {
+          await updateStock(product.productId, -product.qty, session);
+        }
+      });
+    } catch (error) {
+      throw utils.buildErrObject(
+        422,
+        "Algo salió mal... intenta agregar tu venta de nuevo"
+      );
+    } finally {
+      session.endSession();
     }
-    //creating sales details rows
-    let soldProducts = await Promise.all(
-      products.map((product) => db.createItem(product, SalesDetail))
-    );
-    soldProducts = soldProducts.map((soldProduct) => soldProduct.payload);
     //return sale id with products
     res.status(200).json({
       ok: true,
@@ -292,7 +312,31 @@ const update = async (req, res) => {
 const deletes = async (req, res) => {
   try {
     const id = await utils.isIDGood(req.params.id);
-    res.status(200).json(await db.deleteItem(id, model));
+    //begin transaction
+    let deletedItemPayload;
+    const session = await model.startSession();
+    try {
+      await session.withTransaction(async () => {
+        //delete sale
+        deletedItemPayload = await db.deleteItem(id, model, session);
+        //delete sale details
+        let salesDetails = await SalesDetail.find({ saleId: id });
+        for (const salesDetail of salesDetails) {
+          await db.deleteItem(salesDetail._id, SalesDetail, session);
+          //update stock
+          await updateStock(salesDetail.productId, salesDetail.qty, session);
+        }
+      });
+    } catch (error) {
+      console.log(error);
+      throw utils.buildErrObject(
+        422,
+        "Algo salió mal... intenta eliminar tu venta de nuevo"
+      );
+    } finally {
+      session.endSession();
+    }
+    res.status(200).json(deletedItemPayload);
   } catch (error) {
     utils.handleError(res, error);
   }

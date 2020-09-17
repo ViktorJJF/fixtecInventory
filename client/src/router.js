@@ -63,8 +63,8 @@ let routes = [
       },
       {
         path: "/servicios",
-        name: "services",
-        component: () => import("@/views/drawerPages/services.vue"),
+        name: "ServicesContainer",
+        component: () => import("@/views/drawerPages/ServicesContainer.vue"),
       },
       {
         path: "/ventas/crear",
@@ -75,6 +75,11 @@ let routes = [
         path: "/ventas/historial",
         name: "salesHistory",
         component: () => import("@/views/drawerPages/salesHistory.vue"),
+      },
+      {
+        path: "/ventas-servicios/historial",
+        name: "salesServicesHistory",
+        component: () => import("@/views/drawerPages/salesServicesHistory.vue"),
       },
       {
         path: "/perfil-usuario",

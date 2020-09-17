@@ -23,9 +23,9 @@ export default new Vuex.Store({
     commerce: [
       "VENTA DE ACCESORIOS",
       "VENTA DE REPUESTOS",
+      "CELULARES",
       "SOFTWARE",
       "HARDWARE",
-      "CELULARES",
     ],
     stockAlert: [],
   },

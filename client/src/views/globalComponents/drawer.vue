@@ -52,9 +52,7 @@
           <v-list-item-icon>
             <v-icon>{{ subItem.icon }}</v-icon>
           </v-list-item-icon>
-          <v-list-item-content>
-            <v-list-item-title v-text="subItem.title"></v-list-item-title>
-          </v-list-item-content>
+          <v-list-item-content>{{subItem.title}}</v-list-item-content>
         </v-list-item>
       </v-list-group>
       <v-divider class="mx-3 mb-3"></v-divider>
@@ -88,7 +86,7 @@ export default {
         {
           icon: "mdi-format-list-checks",
           text: "Servicios",
-          to: "services",
+          to: "ServicesContainer",
         },
 
         // {
@@ -138,8 +136,13 @@ export default {
             },
             {
               icon: "mdi-format-list-checks",
-              title: "Historial de ventas",
+              title: "Historial de ventas (productos)",
               to: "salesHistory",
+            },
+            {
+              icon: "mdi-format-list-checks",
+              title: "Historial de ventas (servicios)",
+              to: "salesServicesHistory",
             },
           ],
         },

@@ -196,16 +196,17 @@ module.exports = {
    * Creates a new item in database
    * @param {Object} req - request object
    */
-  async createItem(body, model) {
-    return new Promise((resolve, reject) => {
+  async createItem(body, model, session) {
+    return new Promise(async (resolve, reject) => {
       let item = new model(body);
-      item.save((err, payload) => {
-        if (err) {
-          console.log("salio este error prro:", err);
-          reject(buildErrObject(422, err.message));
-        }
+      try {
+        let payload = session
+          ? await item.save({ session })
+          : await item.save();
         resolve({ ok: true, payload });
-      });
+      } catch (err) {
+        reject(buildErrObject(422, err.message));
+      }
     });
   },
 
@@ -238,22 +239,20 @@ module.exports = {
    * Deletes an item from database by id
    * @param {string} id - id of item
    */
-  async deleteItem(id, model) {
-    return new Promise((resolve, reject) => {
-      model.findById(id, (err1, item) => {
-        if (err1) {
-          reject(buildErrObject(422, err1.message));
-        }
+  async deleteItem(id, model, session) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        let item = await model.findById(id);
         if (!item) {
           return itemNotFound(err1, item, reject, "NOT_FOUND");
         }
-        item.remove((err2, payload) => {
-          if (err2) {
-            reject(buildErrObject(422, err2.message));
-          }
-          resolve({ ok: true, payload });
-        });
-      });
+        let payload = session
+          ? await item.remove({ session })
+          : await item.remove();
+        resolve({ ok: true, payload });
+      } catch (err) {
+        reject(buildErrObject(422, err.message));
+      }
     });
   },
 };

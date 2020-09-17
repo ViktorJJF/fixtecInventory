@@ -36,7 +36,41 @@
             :label="'Modo histórico: '+(historyMode?'Activo':'Inactivo')"
           ></v-switch>-->
         </v-row>
-        <v-dialog v-model="dialog" width="1200">
+        <v-dialog
+          v-model="dialogServices"
+          width="1200"
+          v-if="selectedCommerce=='SOFTWARE' || selectedCommerce=='HARDWARE'"
+        >
+          <template v-slot:activator="{ on:dialogServices }">
+            <v-tooltip bottom>
+              <template v-slot:activator="{ on: tooltip }">
+                <v-btn
+                  v-on="{ ...tooltip, ...dialogServices }"
+                  tile
+                  color="primary"
+                  class="my-3 mr-3"
+                >
+                  <v-icon left>search</v-icon>Agregar servicio
+                </v-btn>
+              </template>
+              <span>Listado de servicios</span>
+            </v-tooltip>
+          </template>
+          <v-card>
+            <v-toolbar color="primary" dark>
+              <v-toolbar-title>Servicios</v-toolbar-title>
+            </v-toolbar>
+            <v-container>
+              <services @add-service="addService" :selectButton="true"></services>
+            </v-container>
+            <v-divider></v-divider>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="primary" text @click="dialog = false">De acuerdo</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+        <v-dialog v-model="dialog" width="1200" v-else>
           <template v-slot:activator="{ on:dialog }">
             <v-tooltip bottom>
               <template v-slot:activator="{ on: tooltip }">
@@ -61,36 +95,7 @@
             </v-card-actions>
           </v-card>
         </v-dialog>
-        <!-- service search -->
-        <!-- <v-autocomplete
-          v-if="selectedCommerce=='SOFTWARE' || selectedCommerce=='HARDWARE'"
-          @keyup.enter="addSale(selectedProduct)"
-          placeholder="Escribe el nombre del servicio"
-          @change="addSale(selectedProduct)"
-          class="search-field mr-3"
-          v-model="selectedProduct"
-          :items="services"
-          item-text="name"
-          item-value="_id"
-          :return-object="true"
-          dense
-          outlined
-        ></v-autocomplete>-->
-        <!-- products search -->
-        <!-- <v-autocomplete
-          v-else
-          @keyup.enter="addSale(selectedProduct)"
-          placeholder="Escribe el nombre del producto"
-          @change="addSale(selectedProduct)"
-          class="search-field mr-3"
-          v-model="selectedProduct"
-          :items="products"
-          item-text="name"
-          item-value="_id"
-          :return-object="true"
-          dense
-          outlined
-        ></v-autocomplete>-->
+
         <v-btn outlined color="primary" :to="{name:'salesHistory'}">
           <v-icon left>mdi-format-list-checks</v-icon>Ver historial
         </v-btn>
@@ -126,50 +131,70 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(product,salesIndex) in sales" :key="'a'+salesIndex">
-                <td>{{product.productDetails.typeId?product.productDetails.typeId.name:'Sin tipo'}}</td>
-                <td>{{product.productDetails.name}}</td>
+              <tr
+                v-for="(service,salesServicesIndex) in salesServices"
+                :key="'a'+salesServicesIndex"
+              >
+                <td>{{service.serviceDetails.typeId?service.serviceDetails.typeId.name:'Sin tipo'}}</td>
+                <td>{{service.serviceDetails.name}}</td>
                 <td>
-                  <v-text-field
-                    class="inputs-width"
-                    prefix="S/."
-                    v-model="product.purchasePrice"
-                    type="number"
-                  ></v-text-field>
+                  <p class="perdida mb-0">S/. {{service.cost.value}}</p>
+                  <v-btn
+                    color="info"
+                    dark
+                    small
+                    @click.stop="selectedSalesServicesIndex=salesServicesIndex;dialogServiceCost = true;"
+                  >Detalle</v-btn>
                 </td>
                 <td>
                   <v-text-field
                     class="inputs-width"
                     prefix="S/."
-                    v-model="product.purchasePrice"
+                    v-model="service.salePrice"
                     type="number"
                   ></v-text-field>
                 </td>
                 <td>
                   <ul>
                     <li>
-                      Modelo:
                       <v-text-field
                         class="inputs-width"
-                        v-model="product.purchasePrice"
+                        v-model="service.repairedItem.itemModel"
                         type="text"
+                        hide-details
+                        placeholder="Modelo"
                       ></v-text-field>
                     </li>
                     <li>
-                      Marca:
                       <v-text-field
                         class="inputs-width"
-                        v-model="product.purchasePrice"
+                        v-model="service.repairedItem.itemBrand"
                         type="text"
+                        hide-details
+                        placeholder="Marca"
+                      ></v-text-field>
+                    </li>
+                    <li>
+                      <v-text-field
+                        class="inputs-width"
+                        v-model="service.repairedItem.itemType"
+                        type="text"
+                        hide-details
+                        placeholder="Tipo"
                       ></v-text-field>
                     </li>
                   </ul>
                 </td>
                 <td>
-                  <v-textarea outlined placeholder="Descripción"></v-textarea>
+                  <v-textarea
+                    class="mt-2"
+                    outlined
+                    placeholder="Descripción"
+                    v-model="service.description"
+                  ></v-textarea>
                 </td>
                 <td>
-                  <v-btn small color="error" @click="deleteSale(salesIndex)">Eliminar</v-btn>
+                  <v-btn small color="error" @click="deleteService(salesServicesIndex)">Eliminar</v-btn>
                 </td>
               </tr>
             </tbody>
@@ -257,7 +282,7 @@
         <v-alert
           v-if="selectedCommerce=='SOFTWARE' || selectedCommerce=='HARDWARE'"
           class="my-5"
-          v-show="sales.length==0"
+          v-show="salesServices.length==0"
           type="warning"
           text
         >Aún no agregaste servicios a esta venta</v-alert>
@@ -276,32 +301,143 @@
           </v-card>
         </v-row>
         <v-btn
+          v-if="selectedCommerce=='SOFTWARE' || selectedCommerce=='HARDWARE'"
+          :loading="loadingButton"
+          color="success"
+          @click="saveSaleService(salesServices,date,selectedCommerce)"
+        >Terminar venta de servicio</v-btn>
+        <v-btn
+          v-else
           :loading="loadingButton"
           color="success"
           @click="saveSale(sales,date,selectedCommerce)"
         >Terminar venta</v-btn>
       </v-container>
+      <!-- cost details -->
+      <v-dialog v-model="dialogServiceCost" width="500" v-if="selectedSalesServicesIndex!==null">
+        <v-card>
+          <v-toolbar color="primary" dark>
+            <v-toolbar-title>Detalles del costo del servicio</v-toolbar-title>
+          </v-toolbar>
+          <v-container class="pa-3">
+            <v-row>
+              <v-col cols="12" sm="12">
+                <span class="body-1 font-weight-bold">Costo (productos)</span>
+                <v-dialog v-model="dialogCostProduct" width="1200">
+                  <template v-slot:activator="{ on:dialogCostProduct }">
+                    <v-tooltip bottom>
+                      <template v-slot:activator="{ on: tooltip }">
+                        <v-btn
+                          v-on="{ ...tooltip, ...dialogCostProduct }"
+                          color="primary"
+                          small
+                          class="ml-3"
+                        >
+                          <v-icon left>search</v-icon>Agregar
+                        </v-btn>
+                      </template>
+                      <span>Listado de productos</span>
+                    </v-tooltip>
+                  </template>
+                  <v-card>
+                    <v-toolbar color="primary" dark>
+                      <v-toolbar-title>Productos</v-toolbar-title>
+                    </v-toolbar>
+                    <v-container>
+                      <products @add-product="addServiceCost" :selectButton="true"></products>
+                    </v-container>
+                    <v-divider></v-divider>
+                    <v-card-actions>
+                      <v-spacer></v-spacer>
+                      <v-btn color="primary" text @click="dialogCostProduct = false">De acuerdo</v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-dialog>
+                <v-simple-table class="custom-table mt-3">
+                  <template v-slot:default>
+                    <thead>
+                      <tr>
+                        <th class="text-left">
+                          <span>Tipo</span>
+                        </th>
+                        <th class="text-left">
+                          <span>Producto</span>
+                        </th>
+                        <th class="text-left">
+                          <span>Marca</span>
+                        </th>
+                        <th class="text-left">
+                          <span>Acciones</span>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr
+                        v-for="(costProductId,costProductIndex) in salesServices[selectedSalesServicesIndex].cost.products"
+                        :key="costProductIndex+costProductId"
+                      >
+                        <td>{{($store.getters["productsModule/productById"](costProductId)).typeId.name}}</td>
+                        <td>{{($store.getters["productsModule/productById"](costProductId)).name}}</td>
+                        <td>{{($store.getters["productsModule/productById"](costProductId)).brandId.name}}</td>
+                        <td>
+                          <v-btn
+                            color="error"
+                            x-small
+                            @click="deleteCostProduct(costProductIndex,$store.getters['productsModule/productById'](costProductId))"
+                          >Eliminar</v-btn>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </template>
+                </v-simple-table>
+              </v-col>
+              <v-col cols="12" sm="12">
+                <p class="body-1 font-weight-bold">Costo total del servicio</p>
+                <v-text-field
+                  outlined
+                  dense
+                  prefix="S/."
+                  v-model="salesServices[selectedSalesServicesIndex].cost.value"
+                  type="number"
+                ></v-text-field>
+              </v-col>
+            </v-row>
+          </v-container>
+          <v-divider></v-divider>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn color="primary" text @click="dialogServiceCost = false">Listo</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
     </template>
   </custom-card>
 </template>
 
 <script>
+import services from "@/views/drawerPages/services.vue";
 import products from "@/views/drawerPages/products.vue";
 import formatISO from "date-fns/formatISO";
 export default {
   components: {
+    services,
     products,
   },
   data() {
     return {
+      dialogCostProduct: null,
+      dialogServiceCost: null,
       dialog: null,
+      dialogServices: null,
       selectedCommerce: "",
       editPurchasePrice: false,
       historyMode: false,
+      selectedSalesServicesIndex: null,
       selectedProduct: null,
       date: formatISO(new Date(), { representation: "date" }),
       menu: false,
       sales: [],
+      salesServices: [],
       total: 0,
       productsLoading: false,
       servicesLoading: false,
@@ -309,8 +445,22 @@ export default {
     };
   },
   methods: {
+    deleteCostProduct(costProductIndex, product) {
+      this.salesServices[this.selectedSalesServicesIndex].cost.products.splice(
+        costProductIndex,
+        1
+      );
+      //update total cost
+      this.salesServices[this.selectedSalesServicesIndex].cost.value =
+        parseFloat(
+          this.salesServices[this.selectedSalesServicesIndex].cost.value
+        ) - product.purchasePrice;
+    },
     deleteSale(salesIndex) {
       this.sales.splice(salesIndex, 1);
+    },
+    deleteService(salesServicesIndex) {
+      this.salesServices.splice(salesServicesIndex, 1);
     },
     addSale(product) {
       if (product) {
@@ -324,6 +474,39 @@ export default {
         });
         //close dialog
         this.dialog = false;
+      }
+    },
+    addServiceCost(product) {
+      //close dialog
+      this.dialogCostProduct = false;
+      //add service cost
+      if (product.stock === 0)
+        return this.$store.commit(
+          "errorModule/error",
+          "Ese producto no tiene stock 0"
+        );
+      this.salesServices[this.selectedSalesServicesIndex].cost.products.push(
+        product._id
+      );
+      //update total cost
+      this.salesServices[this.selectedSalesServicesIndex].cost.value =
+        parseFloat(
+          this.salesServices[this.selectedSalesServicesIndex].cost.value
+        ) + product.purchasePrice;
+    },
+    addService(service) {
+      if (service) {
+        this.salesServices.push({
+          serviceId: service._id,
+          serviceDetails: service,
+          cost: { products: [], value: 0 },
+          salePrice: service.price,
+          repairedItem: { itemModel: "", itemType: "", itemBrand: "" },
+          description: "",
+          history: this.historyMode,
+        });
+        //close dialog
+        this.dialogServices = false;
       }
     },
     async saveSale(products, date, commerce) {
@@ -365,6 +548,46 @@ export default {
         this.loadingButton = false;
       }
     },
+    async saveSaleService(services, date, commerce) {
+      console.log("se guardaran estos servicios: ", services);
+      this.loadingButton = true;
+      services = this.$deepCopy(services);
+      //delete unnecesary info
+      for (const service of services) {
+        delete service["serviceDetails"];
+      }
+      //validate if historyMode, set history mode to services
+      if (this.historyMode) {
+        for (const service of services) {
+          service.history = true;
+        }
+      } else {
+        for (const service of services) {
+          service.history = false;
+        }
+      }
+      try {
+        date = new Date(date);
+        date = new Date(date.getTime() - date.getTimezoneOffset() * -60000);
+        await this.$store.dispatch("salesServicesModule/create", {
+          history: this.historyMode,
+          services,
+          date: date,
+          commerce,
+        });
+        for (const service of services) {
+          for (const product of service.cost.products) {
+            this.$store.commit("productsModule/updateStock", {
+              productId: product,
+              qty: -1,
+            });
+          }
+        }
+        this.sales = [];
+      } finally {
+        this.loadingButton = false;
+      }
+    },
   },
   computed: {
     products() {
@@ -374,7 +597,12 @@ export default {
       return this.$store.state.servicesModule.services;
     },
     getTotal() {
-      return this.sales.reduce((a, b) => a + b.salePrice * b.qty, 0).toFixed(2);
+      return this.selectedCommerce === "SOFTWARE" ||
+        this.selectedCommerce === "HARDWARE"
+        ? this.salesServices
+            .reduce((a, b) => a + parseFloat(b.salePrice), 0)
+            .toFixed(2)
+        : this.sales.reduce((a, b) => a + b.salePrice * b.qty, 0).toFixed(2);
     },
     commerce() {
       return this.$store.state.commerce;

@@ -6,6 +6,34 @@ const { updateStock } = require("../mongoMiddlewares/Middlewares");
 
 //methods
 
+(async () => {
+  console.log("inilizando transacción...");
+  let initial = {
+    history: false,
+    services: [
+      {
+        serviceId: "5f2cea878d6c3500170f794e",
+        cost: {
+          products: [],
+          value: 0,
+        },
+        salePrice: 10,
+        repairedItem: {
+          itemModel: "",
+          itemType: "",
+          itemBrand: "",
+        },
+        description: "",
+        history: false,
+      },
+    ],
+    date: "2020-09-18T05:00:00.000Z",
+    commerce: "SOFTWARE",
+  };
+  await db.createItem(initial, model);
+  console.log("transacción terminada...");
+})();
+
 const listAll = async (req, res) => {
   try {
     res.status(200).json(await db.getAllItems(model));

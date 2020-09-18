@@ -376,9 +376,9 @@
                         v-for="(costProductId,costProductIndex) in salesServices[selectedSalesServicesIndex].cost.products"
                         :key="costProductIndex+costProductId"
                       >
-                        <td>{{($store.getters["productsModule/productById"](costProductId)).typeId.name}}</td>
+                        <td>{{($store.getters["productsModule/productById"](costProductId)).typeId?($store.getters["productsModule/productById"](costProductId)).typeId.name:"Sin tipo"}}</td>
                         <td>{{($store.getters["productsModule/productById"](costProductId)).name}}</td>
-                        <td>{{($store.getters["productsModule/productById"](costProductId)).brandId.name}}</td>
+                        <td>{{($store.getters["productsModule/productById"](costProductId)).brandId?($store.getters["productsModule/productById"](costProductId)).brandId.name:"Sin marca"}}</td>
                         <td>
                           <v-btn
                             color="error"

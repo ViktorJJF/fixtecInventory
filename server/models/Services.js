@@ -33,7 +33,6 @@ let servicesSchema = new Schema(
 
 //auto populate
 var autoPopulateLead = function (next) {
-  console.log("se paso por products gaea");
   this.populate("typeId");
   next();
 };

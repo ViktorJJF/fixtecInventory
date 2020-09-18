@@ -18,6 +18,15 @@ const list = async (req, res) => {
   try {
     const query = req.query;
     // const query = await db.checkQueryString(req.query);
+    if (query.startDate || query.endDate) {
+      query.date = {};
+      if (query.startDate)
+        query.date["$gte"] = utils.convertToDate(query.startDate);
+      if (query.endDate)
+        query.date["$lte"] = utils.convertToDate(query.endDate);
+      delete query["startDate"];
+      delete query["endDate"];
+    }
     res.status(200).json(await db.getItems(req, model, query));
   } catch (error) {
     utils.handleError(res, error);
@@ -128,15 +137,15 @@ const create = async (req, res) => {
         }
       });
     } catch (error) {
-      console.log("error en transaccion: ", error);
+      throw utils.buildErrObject(
+        422,
+        "Algo salió mal... intenta agregar tu venta de servicio de nuevo"
+      );
     } finally {
       session.endSession();
     }
     //end transaction
-    res.status(200).json({
-      ok: true,
-      payload: createdSaleService,
-    });
+    res.status(200).json(createdSaleService);
   } catch (error) {
     utils.handleError(res, error);
   }
@@ -153,7 +162,33 @@ const update = async (req, res) => {
 const deletes = async (req, res) => {
   try {
     const id = await utils.isIDGood(req.params.id);
-    res.status(200).json(await db.deleteItem(id, model));
+
+    let salesServiceToDelete;
+    const session = await model.startSession();
+    try {
+      await session.withTransaction(async () => {
+        //search sale service to delete
+        salesServiceToDelete = await db.getItem(id, model);
+        //update stock (if hast cost products)
+        for (const service of salesServiceToDelete.payload.services) {
+          if (service.cost.products.length > 0) {
+            for (const product of service.cost.products) {
+              await updateStock(product, 1, session);
+            }
+          }
+        }
+        //delete sale service
+        await db.deleteItem(id, model, session);
+      });
+    } catch (error) {
+      throw utils.buildErrObject(
+        422,
+        "Algo salió mal... intenta eliminar tu venta de servicio de nuevo"
+      );
+    } finally {
+      session.endSession();
+    }
+    res.status(200).json(salesServiceToDelete);
   } catch (error) {
     utils.handleError(res, error);
   }

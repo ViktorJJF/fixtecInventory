@@ -67,7 +67,29 @@ let salesServicesSchema = new Schema(
   },
   {
     versionKey: false,
+    timestamps: true,
   }
 );
+
+//auto populate
+var autoPopulateLead = function (next) {
+  this.populate("services.serviceId");
+  this.populate("services.cost.products");
+  next();
+};
+var autoPopulateLead2 = function (doc, next) {
+  doc
+    .populate("services.serviceId")
+    .populate("services.cost.products")
+    .execPopulate()
+    .then(function () {
+      next();
+    });
+};
+
+salesServicesSchema
+  .pre("findOne", autoPopulateLead)
+  .pre("find", autoPopulateLead);
+salesServicesSchema.post("save", autoPopulateLead2);
 
 module.exports = mongoose.model("SalesServices", salesServicesSchema);

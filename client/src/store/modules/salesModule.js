@@ -55,7 +55,6 @@ const module = {
         api
           .create(data)
           .then((res) => {
-            commit("loadingModule/showLoading", true, { root: true });
             buildSuccess("Venta creada con éxito", commit);
             commit("create", res.data.payload);
             resolve(res.data.payload);

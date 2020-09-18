@@ -52,7 +52,7 @@
           <v-list-item-icon>
             <v-icon>{{ subItem.icon }}</v-icon>
           </v-list-item-icon>
-          <v-list-item-content>{{subItem.title}}</v-list-item-content>
+          {{subItem.title}}
         </v-list-item>
       </v-list-group>
       <v-divider class="mx-3 mb-3"></v-divider>
@@ -105,8 +105,13 @@ export default {
           items: [
             {
               icon: "mdi-bookmark-plus-outline",
-              title: "Reporte de ventas",
+              title: "Reporte de ventas (productos)",
               to: "ReportSales",
+            },
+            {
+              icon: "mdi-bookmark-plus-outline",
+              title: "Reporte de ventas (servicios)",
+              to: "ReportSalesServices",
             },
             {
               icon: "mdi-bookmark-plus-outline",

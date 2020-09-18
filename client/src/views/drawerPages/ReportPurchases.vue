@@ -5,6 +5,13 @@
       <span class>S/.{{totalPurchases | formatMoney}}</span>
     </h1>
     <v-container fluid>
+      <v-col cols="12" sm="12">
+        <strong>Cantidad de compras:</strong>
+        {{$store.state.purchasesModule.total}}
+      </v-col>
+      <div class="text-center pt-2">
+        <v-pagination v-model="page" :length="pageCount"></v-pagination>
+      </div>
       <v-simple-table class="custom-table">
         <template v-slot:default>
           <thead>
@@ -24,7 +31,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="item in purchases" :key="item.name">
+            <tr v-for="item in paginatedPurchases" :key="item.name">
               <td class="text-center">
                 <b>{{ item.commerce }}</b>
               </td>
@@ -51,6 +58,9 @@
           </tbody>
         </template>
       </v-simple-table>
+      <div class="text-center pt-2">
+        <v-pagination v-model="page" :length="pageCount"></v-pagination>
+      </div>
     </v-container>
   </v-container>
 </template>
@@ -65,10 +75,11 @@ export default {
     },
   },
   data() {
-    return {};
+    return {
+      page: 1,
+    };
   },
   async mounted() {
-    this.$store.getters["purchasesModule/purchasesWithProductsPopulated"];
     this.$store.dispatch("loadingModule/showLoading");
     await this.$store.dispatch("purchasesModule/listWithProducts", {
       page: 1,
@@ -77,8 +88,17 @@ export default {
     this.$store.dispatch("loadingModule/showLoading", false);
   },
   computed: {
+    pageCount() {
+      return Math.ceil(this.purchases.length / this.$store.state.itemsPerPage);
+    },
     purchases() {
       return this.$store.state.purchasesModule.purchases;
+    },
+    paginatedPurchases() {
+      return this.purchases.slice(
+        (this.page - 1) * this.$store.state.itemsPerPage,
+        this.page * this.$store.state.itemsPerPage
+      );
     },
     totalPurchases() {
       return this.purchases

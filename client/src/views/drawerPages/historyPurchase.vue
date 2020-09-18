@@ -37,7 +37,7 @@
             dense
             placeholder="Selecciona un negocio"
             v-model="filters.commerce"
-            :items="commerce"
+            :items="['VENTA DE ACCESORIOS','VENTA DE REPUESTOS','CELULARES']"
             class="mr-3 mb-3"
             outlined
           ></v-select>

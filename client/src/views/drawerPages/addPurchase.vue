@@ -167,7 +167,7 @@
         </v-row>
         <v-btn
           :loading="loadingButton"
-          color="success"
+          color="primary"
           @click="savePurchase(purchases,date,selectedCommerce)"
         >Terminar compra</v-btn>
       </v-container>
@@ -185,13 +185,7 @@ export default {
   data() {
     return {
       dialog: null,
-      commerce: [
-        "VENTA DE ACCESORIOS",
-        "VENTA DE REPUESTOS",
-        "SOFTWARE",
-        "HARDWARE",
-        "CELULARES",
-      ],
+      commerce: ["VENTA DE ACCESORIOS", "VENTA DE REPUESTOS", "CELULARES"],
       selectedCommerce: "",
       historyMode: false,
       selectedProduct: null,
@@ -254,7 +248,7 @@ export default {
             });
           }
         }
-        this.purchases = [];
+        // this.purchases = [];
       } finally {
         this.loadingButton = false;
       }

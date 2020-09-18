@@ -118,6 +118,11 @@ let routes = [
         component: () => import("@/views/drawerPages/ReportSales.vue"),
       },
       {
+        path: "/reporte-de-ventas-servicios",
+        name: "ReportSalesServices",
+        component: () => import("@/views/drawerPages/ReportSalesServices.vue"),
+      },
+      {
         path: "/reporte-de-compras",
         name: "ReportPurchases",
         component: () => import("@/views/drawerPages/ReportPurchases.vue"),

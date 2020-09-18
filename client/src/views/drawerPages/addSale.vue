@@ -549,7 +549,6 @@ export default {
       }
     },
     async saveSaleService(services, date, commerce) {
-      console.log("se guardaran estos servicios: ", services);
       this.loadingButton = true;
       services = this.$deepCopy(services);
       //delete unnecesary info
@@ -583,7 +582,8 @@ export default {
             });
           }
         }
-        this.sales = [];
+        this.salesServices = [];
+        this.selectedSalesServicesIndex = null;
       } finally {
         this.loadingButton = false;
       }

@@ -102,17 +102,16 @@
         <template v-slot:no-data>
           <v-alert type="error" :value="true">Aún no cuentas con un historial de ventas</v-alert>
         </template>
-        <template v-slot:item.userId="{item}">{{item.userId.email}}</template>
-        <template v-slot:item.products="{item}">
+        <template v-slot:item.services="{item}">
           <ul>
-            <li
-              v-for="product in item.products"
-              :key="product._id"
-            >{{product.productId?product.productId.name:'Producto eliminado'}} ({{product.qty}} x S/.{{product.salePrice}})</li>
+            <li v-for="service in item.services" :key="service._id">
+              {{service.serviceId.name}} (Costo:
+              <span class="perdida">{{service.cost.value}}</span>)
+            </li>
           </ul>
         </template>
         <template v-slot:item.amount="{item}">
-          <span class="ganancia">S/.{{totalRevenue(item.products)}}</span>
+          <span class="ganancia">S/.{{totalRevenue(item.services)}}</span>
         </template>
         <template v-slot:item.commerce="{item}">
           <span>{{item.commerce}}</span>
@@ -129,12 +128,6 @@
               type="date"
             ></v-text-field>
             <span v-show="!editMode || item._id!=editedIndex">{{item.date | formatDate}}</span>
-            <v-chip
-              v-show="item.products[0]?item.products[0].history:false"
-              color="info"
-              class="ma-2"
-              small
-            >Histórico</v-chip>
           </div>
         </template>
         <template v-slot:item.actions="{item}">
@@ -150,7 +143,7 @@
             class="mr-2 my-2"
             small
             color="success"
-            @click="saveSale(item);editMode=false;"
+            @click="saveSaleService(item);editMode=false;"
           >Guardar</v-btn>
           <v-btn class="mb-2 my-2" small color="error" @click="deleteItem(item)">Eliminar</v-btn>
         </template>
@@ -174,7 +167,7 @@ export default {
     },
   },
   data: () => ({
-    filters: { startDate: null, endDate: null, commerce: null, product: null },
+    filters: { startDate: null, endDate: null, commerce: null },
     editedDate: null,
     editedIndex: null,
     editMode: false,
@@ -189,9 +182,8 @@ export default {
     headers: [
       { text: "Negocio", value: "commerce" },
       { text: "Fecha de venta", value: "date" },
-      { text: "Vendedor", value: "userId" },
-      { text: "Productos vendidos", value: "products" },
-      { text: "Beneficio", value: "amount" },
+      { text: "Servicios", value: "services" },
+      { text: "Ingreso", value: "amount" },
       { text: "Acciones", value: "actions" },
     ],
     salesServices: [],
@@ -219,12 +211,8 @@ export default {
       try {
         this.$store.dispatch("loadingModule/showLoading");
         currentPage = currentPage || 1;
-        console.log(
-          "listado: ",
-          await this.$store.dispatch("salesServicesModule/list")
-        );
         this.salesServices = this.$deepCopy(
-          await this.$store.dispatch("salesServicesModule/listWithProducts", {
+          await this.$store.dispatch("salesServicesModule/list", {
             ...filters,
             ...buildPayloadPagination({
               page: currentPage,
@@ -239,7 +227,7 @@ export default {
       }
       this.isDataReady = true;
     },
-    async saveSale(sale) {
+    async saveSaleService(sale) {
       let date = new Date(this.editedDate);
       date = new Date(date.getTime() - date.getTimezoneOffset() * -60000);
       sale.date = date;
@@ -254,29 +242,32 @@ export default {
     totalRevenue(salesServicesDetail) {
       if (salesServicesDetail)
         return salesServicesDetail
-          .reduce((a, b) => a + b.salePrice * b.qty, 0)
+          .reduce((a, b) => a + b.salePrice, 0)
           .toFixed(2);
       else return "S/.0";
     },
     async deleteItem(item) {
       const index = this.salesServices.indexOf(item);
       let itemId = this.salesServices[index]._id;
-      let detailsProducts = this.salesServices[index].products;
+      let detailsServices = this.salesServices[index].services;
       if (
         await this.$confirm(
-          "¿Seguro que deseas eliminar esta venta? Se sumará el stock a los productos del detalle"
+          "¿Seguro que deseas eliminar esta venta de servicio? Se sumará el stock a los productos del costo del servicio"
         )
       ) {
         try {
           this.$store.dispatch("loadingModule/showLoading");
           await this.$store.dispatch("salesServicesModule/delete", itemId);
-          for (const detailsProduct of detailsProducts) {
-            console.log("este es el history: ", detailsProduct.history);
-            if (!detailsProduct.history) {
-              this.$store.commit("productsModule/updateStock", {
-                productId: detailsProduct.productId._id,
-                qty: detailsProduct.qty,
-              });
+          for (const detailsService of detailsServices) {
+            if (!detailsService.history) {
+              if (detailsService.cost.products.length > 0) {
+                for (const product of detailsService.cost.products) {
+                  this.$store.commit("productsModule/updateStock", {
+                    productId: product._id,
+                    qty: 1,
+                  });
+                }
+              }
             }
           }
           this.salesServices.splice(index, 1);

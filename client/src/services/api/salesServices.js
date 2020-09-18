@@ -1,6 +1,10 @@
 import axios from "axios";
 export default {
-  list(query = { sort: "date", order: "1" }) {
+  list(query) {
+    if (query) {
+      query.sort = "date";
+      query.order = -1;
+    }
     return axios.get("/api/sales-services", { params: query });
   },
   update(id, payload) {

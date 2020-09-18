@@ -3,7 +3,7 @@
     <ul>
       <li>
         <h2 class="mb-3">
-          Total de Ventas:
+          Total de Ventas de Servicios:
           <span class="ganancia">S/.{{totalSales | formatMoney}}</span>
         </h2>
       </li>
@@ -16,8 +16,8 @@
     </ul>
     <v-container fluid>
       <v-col cols="12" sm="12">
-        <strong>Cantidad de ventas:</strong>
-        {{$store.state.salesModule.total}}
+        <strong>Cantidad de ventas de servicios:</strong>
+        {{$store.state.salesServicesModule.salesServices.length}}
       </v-col>
       <div class="text-center pt-2">
         <v-pagination v-model="page" :length="pageCount"></v-pagination>
@@ -33,7 +33,7 @@
                 <span>Fecha</span>
               </th>
               <th class="text-center">
-                <span>Productos</span>
+                <span>Servicios</span>
               </th>
               <th class="text-center">
                 <span>Costo</span>
@@ -47,25 +47,34 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="item in paginatedSales" :key="item.name">
+            <tr v-for="item in paginatedSalesServices" :key="item.name">
               <!-- <td>{{item}}</td> -->
               <td class="text-center">
                 <b>{{ item.commerce }}</b>
               </td>
               <td class="text-center">{{ item.date | formatDate }}</td>
               <td class="text-center">
-                <ul>
-                  <li
-                    v-for="productDetail in item.products"
-                    :key="productDetail._id"
-                  >{{productDetail.productId?productDetail.productId.name:'Producto eliminado'}} ({{productDetail.qty}} x S/.{{productDetail.salePrice}})</li>
-                </ul>
+                <div>
+                  <div
+                    v-for="serviceDetail in item.services"
+                    :key="serviceDetail._id"
+                  >- {{serviceDetail.serviceId?serviceDetail.serviceId.name:'servicio eliminado'}} (Venta: S/.{{serviceDetail.salePrice}})</div>
+                </div>
               </td>
-              <td class="text-center">S/.{{subTotalCost(item.products) | formatMoney}}</td>
-              <td class="text-center">S/.{{subTotalRevenue(item.products) | formatMoney}}</td>
+              <td class="text-center">
+                <div v-for="service in item.services" :key="service._id">
+                  <div
+                    v-for="product in service.cost.products"
+                    :key="product._id"
+                  >- {{ product.name }} (Costo: {{product.purchasePrice}})</div>
+                </div>
+                <b>Total:</b>
+                S/.{{subTotalCost(item.services) | formatMoney}}
+              </td>
+              <td class="text-center">S/.{{subTotalRevenue(item.services) | formatMoney}}</td>
               <td
                 class="text-center"
-              >S/.{{(subTotalRevenue(item.products)-subTotalCost(item.products)) | formatMoney}}</td>
+              >S/.{{(subTotalRevenue(item.services)-subTotalCost(item.services)) | formatMoney}}</td>
             </tr>
             <tr>
               <td class="text-center"></td>
@@ -111,52 +120,50 @@ export default {
   },
   async mounted() {
     this.$store.dispatch("loadingModule/showLoading");
-    await this.$store.dispatch("salesModule/listWithProducts", {
-      page: 1,
-      limit: 9999,
-    });
+    await this.$store.dispatch("salesServicesModule/list");
     this.$store.dispatch("loadingModule/showLoading", false);
   },
   computed: {
     pageCount() {
-      return Math.ceil(this.sales.length / this.$store.state.itemsPerPage);
+      return Math.ceil(
+        this.salesServices.length / this.$store.state.itemsPerPage
+      );
     },
-    sales() {
-      return this.$store.state.salesModule.sales;
+    salesServices() {
+      return this.$store.state.salesServicesModule.salesServices;
     },
-    paginatedSales() {
-      return this.sales.slice(
+    paginatedSalesServices() {
+      return this.salesServices.slice(
         (this.page - 1) * this.$store.state.itemsPerPage,
         this.page * this.$store.state.itemsPerPage
       );
     },
     totalSales() {
-      return this.sales
+      return this.salesServices
         .reduce(
-          (a, b) => a + b.products.reduce((c, d) => c + d.salePrice * d.qty, 0),
+          (a, b) => a + b.services.reduce((c, d) => c + d.salePrice, 0),
           0
         )
         .toFixed(2);
     },
     totalSalesCost() {
-      return this.sales
+      return this.salesServices
         .reduce(
-          (a, b) =>
-            a + b.products.reduce((c, d) => c + d.purchasePrice * d.qty, 0),
+          (a, b) => a + b.services.reduce((c, d) => c + d.cost.value, 0),
           0
         )
         .toFixed(2);
     },
   },
   methods: {
-    subTotalRevenue(salesDetail) {
-      if (salesDetail)
-        return salesDetail.reduce((a, b) => a + b.salePrice * b.qty, 0);
+    subTotalRevenue(salesServicesDetail) {
+      if (salesServicesDetail)
+        return salesServicesDetail.reduce((a, b) => a + b.salePrice, 0);
       else return "S/.0";
     },
-    subTotalCost(salesDetail) {
-      if (salesDetail)
-        return salesDetail.reduce((a, b) => a + b.purchasePrice * b.qty, 0);
+    subTotalCost(salesServicesDetail) {
+      if (salesServicesDetail)
+        return salesServicesDetail.reduce((a, b) => a + b.cost.value, 0);
       else return "S/.0";
     },
   },

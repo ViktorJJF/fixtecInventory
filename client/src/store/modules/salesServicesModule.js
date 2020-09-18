@@ -24,39 +24,12 @@ const module = {
           });
       });
     },
-    listWithProducts({ commit, rootGetters }, query) {
-      return new Promise((resolve, reject) => {
-        api
-          .listWithProducts(query)
-          .then((response) => {
-            let salesServices = response.data.payload;
-            // populate
-            const productById = rootGetters["productsModule/productById"];
-            //populate with products
-            for (let i = 0; i < salesServices.length; i++) {
-              for (let j = 0; j < salesServices[i].products.length; j++) {
-                salesServices[i].products[j].productId = productById(
-                  salesServices[i].products[j].productId
-                );
-              }
-            }
-            commit("list", salesServices);
-            commit("totalItems", response.data.totalDocs);
-            commit("totalPages", response.data.totalPages);
-            resolve(salesServices);
-          })
-          .catch((error) => {
-            handleError(error, commit, reject);
-          });
-      });
-    },
     create({ commit }, data) {
       return new Promise((resolve, reject) => {
         api
           .create(data)
           .then((res) => {
             commit("loadingModule/showLoading", true, { root: true });
-            buildSuccess("Venta creada con éxito", commit);
             commit("create", res.data.payload);
             resolve(res.data.payload);
           })
@@ -89,7 +62,7 @@ const module = {
           .delete(id)
           .then(() => {
             commit("loadingModule/showLoading", true, { root: true });
-            buildSuccess("Venta eliminada con éxito", commit);
+            buildSuccess("Venta de servicio eliminado con éxito", commit);
             commit("delete", id);
             resolve();
           })
@@ -124,8 +97,8 @@ const module = {
       let indexToDelete = state.salesServices.findIndex(
         (member) => member._id == id
       );
-      console.log("se eliminara este: ", id, indexToDelete);
       state.salesServices.splice(indexToDelete, 1);
+      state.total -= 1;
     },
   },
   getters: {},
